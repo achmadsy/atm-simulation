@@ -11,6 +11,7 @@ import com.mycompany.atm.custom.exception.IncorrectCSVDataException;
 import com.mycompany.atm.domain.Account;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  *
@@ -20,5 +21,5 @@ public interface AccountDao {
     public Account get(String accountNumber, String pin);
     public Account find(String accountNumber);
     public void update(String accountNumber, BigDecimal newBalance);
-    public void readAllFromCSV() throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException;
+    public List<Account> readAllFromCSV() throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException;
 }

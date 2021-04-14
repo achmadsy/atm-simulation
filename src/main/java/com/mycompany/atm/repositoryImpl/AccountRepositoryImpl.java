@@ -13,6 +13,7 @@ import com.mycompany.atm.domain.Account;
 import com.mycompany.atm.repository.AccountRepository;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  *
@@ -37,8 +38,8 @@ public class AccountRepositoryImpl implements AccountRepository{
     }
 
     @Override
-    public void readAllFromCSV() throws IOException, IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException {
-        accountDaoImpl.readAllFromCSV();
+    public List<Account> readAllFromCSV() throws IOException, IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException {
+        return accountDaoImpl.readAllFromCSV();
     }
 
     @Override

@@ -53,7 +53,7 @@ public class AccountDaoImpl implements AccountDao {
     }
        
     @Override
-    public void readAllFromCSV() throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException {
+    public List<Account> readAllFromCSV() throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException {
         List<Account> accounts = new ArrayList<>();
         AtomicInteger accountFixedCount = new AtomicInteger(0);
         
@@ -84,8 +84,7 @@ public class AccountDaoImpl implements AccountDao {
 
         bufferedReader.close();
         
-        
-        Main.listAccounts = accounts;
+        return accounts;
     }
 
     private String checkAccountNumberDuplicate(List<Account> accounts) {
