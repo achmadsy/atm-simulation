@@ -1,0 +1,24 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.mycompany.atm.repository;
+
+import com.mycompany.atm.custom.exception.AccountNumberDuplicatedException;
+import com.mycompany.atm.custom.exception.DuplicatedRecordException;
+import com.mycompany.atm.custom.exception.IncorrectCSVDataException;
+import com.mycompany.atm.domain.Account;
+import java.io.IOException;
+import java.math.BigDecimal;
+
+/**
+ *
+ * @author Achmad_ST761
+ */
+public interface AccountRepository {
+    public Account get(String accountNumber, String pin) ;
+    public Account find(String accountNumber) ;
+    public void update(String accountNumber, BigDecimal newBalance);
+    public void readAllFromCSV() throws IOException, IncorrectCSVDataException,  AccountNumberDuplicatedException, DuplicatedRecordException;
+}
