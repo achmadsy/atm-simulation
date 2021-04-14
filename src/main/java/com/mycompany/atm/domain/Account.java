@@ -85,7 +85,7 @@ public class Account {
     }
     
     public Transaction getLatestTransactionHistory(){
-        return this.transactionHistory.get(this.transactionHistory.size()-1);
+        return this.transactionHistory.stream().filter(e -> e.getAmount().contains("-")).reduce((first, second) -> second).get();
     }
     
     

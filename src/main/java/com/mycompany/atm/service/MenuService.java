@@ -48,7 +48,7 @@ public class MenuService {
                 System.out.flush();
             }
         } catch (final IOException | InterruptedException e) {
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
     }
 
@@ -68,7 +68,7 @@ public class MenuService {
             showTransactionScreen();
         } catch (AccountNumberException | PinException | InvalidAccountException e) {
             clearScreen();
-            System.out.println(e);
+            System.out.println(e.getMessage());
             showWelcomeScreen();
         }  
     }
@@ -145,7 +145,7 @@ public class MenuService {
         } catch (NumberFormatException e) {
             showWithdrawScreen();
         } catch (InsufficientBalanceException e) {
-            System.out.println(e);
+            System.out.println(e.getMessage());
             showWithdrawScreen();
         }
         
@@ -155,8 +155,8 @@ public class MenuService {
         userLastTransaction = userAccount.getLatestTransactionHistory();
         System.out.println("Summary");
         System.out.println("Date : "+userLastTransaction.getFormattedDate());
-        System.out.println("Withdraw : "+userLastTransaction.getAmount());
-        System.out.println("Balance : "+userAccount.getBalance().toString());
+        System.out.println("Withdraw $: "+userLastTransaction.getAmount().substring(1,userLastTransaction.getAmount().length()));
+        System.out.println("Balance $: "+userAccount.getBalance().toString());
         System.out.println("");
         System.out.println("1. Transaction");
         System.out.println("2. Exit");
@@ -198,7 +198,7 @@ public class MenuService {
             System.out.println("Invalid Amount");
             showOtherWithdrawScreen();
         } catch (MultiplyAmountException | MaximumAmountException | MinimumAmountException e) {
-            System.out.println(e);
+            System.out.println(e.getMessage());
             showOtherWithdrawScreen();
         }
         
@@ -210,6 +210,7 @@ public class MenuService {
         userAccount.getTransactionHistory().stream().forEach(e -> {
             System.out.println(e.getTransactionType()+"                 "+e.getAmount());
         });
+//            System.out.println(userAccount.getTransactionHistory().size());
         System.out.println("Press enter to back to the main menu");
         scanner.nextLine();
         clearScreen();
@@ -291,8 +292,8 @@ public class MenuService {
         } catch (NumberFormatException e) {
             showFundTransferConfirmScreen();
         } catch (AccountNumberException | InvalidAccountException | InvalidAmountException | MultiplyAmountException | MaximumAmountException | MinimumAmountException |
-                InvalidReferenceException e) {
-            System.out.println(e);
+                InvalidReferenceException | InsufficientBalanceException e) {
+            System.out.println(e.getMessage());
             showTransactionScreen();
         }
         
@@ -302,7 +303,7 @@ public class MenuService {
         userLastTransaction = userAccount.getLatestTransactionHistory();
         System.out.println("Fund Transfer Summary");
         System.out.println("Destination Account : "+((TransactionFundTransfer)userLastTransaction).getDestAccount());
-        System.out.println("Transfer Amount     : "+((TransactionFundTransfer)userLastTransaction).getAmount());
+        System.out.println("Transfer Amount     : $"+((TransactionFundTransfer)userLastTransaction).getAmount().substring(1, ((TransactionFundTransfer)userLastTransaction).getAmount().length()));
         System.out.println("Reference Number    : "+((TransactionFundTransfer)userLastTransaction).getRefNumber());
         System.out.println("Balance             : "+userAccount.getBalance());  
         System.out.println("");

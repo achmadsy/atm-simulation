@@ -22,7 +22,7 @@
                            <appendAssemblyId>false</appendAssemblyId>
                            <archive>
                                <manifest>
-                                   <mainClass>com.mycompany.Main</mainClass>
+                                   <mainClass>com.mycompany.atm.Main</mainClass>
                                </manifest>
                            </archive>
                            <descriptorRefs>

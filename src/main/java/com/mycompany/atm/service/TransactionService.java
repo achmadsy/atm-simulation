@@ -43,7 +43,7 @@ public class TransactionService {
         try{    
             listAccounts = accountRepositoryImpl.readAllFromCSV();
         } catch (AccountNumberDuplicatedException|DuplicatedRecordException|IOException|IncorrectCSVDataException e) {
-            System.out.println("IMPORT INFO : "+e);
+            System.out.println("IMPORT INFO : "+e.getMessage());
         }
 
         return listAccounts;
@@ -66,7 +66,12 @@ public class TransactionService {
         List<Account> listAccount = listAccontsDefault.stream().filter(o -> listAccontsFromCSV.stream().anyMatch(csv -> !csv.getAccountName().equals(o.getAccountName())))
                 .collect(Collectors.toList());
         
-        return Stream.concat(listAccontsFromCSV.stream(), listAccount.stream()).collect(Collectors.toList());
+        if (listAccount.isEmpty()) {
+            return listAccontsDefault;
+        } else {
+            return Stream.concat(listAccontsFromCSV.stream(), listAccount.stream()).collect(Collectors.toList());
+        }
+        
     }
     
     public Account getAccount(String accountNum, String pin) {
@@ -114,9 +119,12 @@ public class TransactionService {
         userAccount.addUserTransactionHistory(transaction);
         accountRepositoryImpl.update(userAccount.getAccountNumber(), userAccount.getBalance());
         Account otherAccount = accountRepositoryImpl.find(transaction.getDestAccount());
-        otherAccount.setBalance(otherAccount.getBalance().add(new BigDecimal(transaction.getAmount())));
-        transaction.setAmount("+"+amount);
-        otherAccount.addUserTransactionHistory(transaction);
+        otherAccount.setBalance(otherAccount.getBalance().add(new BigDecimal(amount)));
+        TransactionFundTransfer otherAccountTransaction = new TransactionFundTransfer();
+        otherAccountTransaction.setRefNumber(transaction.getRefNumber());
+        otherAccountTransaction.setTransactionDate(transaction.getTransactionDate());
+        otherAccountTransaction.setAmount("+"+amount);
+        otherAccount.addUserTransactionHistory(otherAccountTransaction);
         accountRepositoryImpl.update(otherAccount.getAccountNumber(), otherAccount.getBalance());
     }
     

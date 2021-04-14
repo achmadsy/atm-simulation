@@ -9,6 +9,7 @@ import com.mycompany.atm.domain.Account;
 import com.mycompany.atm.service.MenuService;
 import com.mycompany.atm.service.TransactionService;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  *
@@ -19,12 +20,18 @@ public class Main {
     public static List<Account> listAccounts; 
     
     public static void main(String[] args) {
-        filePath = args[0];
+        if (args.length > 0) {
+            filePath = args[0];
+        }
         TransactionService transactionService = new TransactionService();
         MenuService menuService = new MenuService();
-        listAccounts = transactionService.getAccounts();
         menuService.clearScreen();
-        menuService.showWelcomeScreen();
+        listAccounts = transactionService.getAccounts();
+        try {
+            menuService.showWelcomeScreen();
+        } catch (NoSuchElementException e) {
+            System.exit(0);
+        }
     }
     
 }

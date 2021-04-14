@@ -57,32 +57,36 @@ public class AccountDaoImpl implements AccountDao {
         List<Account> accounts = new ArrayList<>();
         AtomicInteger accountFixedCount = new AtomicInteger(0);
         
-        File file = new File(filePath);
-        InputStream inputStream = new FileInputStream(file);
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+        if (!filePath.isEmpty()) {
         
-        bufferedReader.lines().skip(1).forEach(e -> {
-            Account account = null;
-            String[] data = e.split(",");
-            if (data.length == 4) {
-                accounts.add(new Account(data[0],data[1],data[2],new BigDecimal(data[3]), new ArrayList<>()));
+            File file = new File(filePath);
+            InputStream inputStream = new FileInputStream(file);
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+
+            bufferedReader.lines().skip(1).forEach(e -> {
+                Account account = null;
+                String[] data = e.split(",");
+                if (data.length == 4) {
+                    accounts.add(new Account(data[0],data[1],data[2],new BigDecimal(data[3]), new ArrayList<>()));
+                }
+                accountFixedCount.getAndIncrement();
+            });
+
+
+            String duplicatedAccNumber = checkAccountNumberDuplicate(accounts);
+            Account duplicatedRecord = checkDuplicatedRecord(accounts);
+
+            if (accounts.size() != accountFixedCount.intValue()) {
+                throw new IncorrectCSVDataException();
+            } else if (duplicatedAccNumber != null){
+                throw new AccountNumberDuplicatedException(duplicatedAccNumber);
+            } else if (duplicatedRecord != null) {
+                throw new DuplicatedRecordException(duplicatedRecord);
             }
-            accountFixedCount.getAndIncrement();
-        });
 
+            bufferedReader.close();
         
-        String duplicatedAccNumber = checkAccountNumberDuplicate(accounts);
-        Account duplicatedRecord = checkDuplicatedRecord(accounts);
-        
-        if (accounts.size() != accountFixedCount.intValue()) {
-            throw new IncorrectCSVDataException();
-        } else if (duplicatedAccNumber != null){
-            throw new AccountNumberDuplicatedException(duplicatedAccNumber);
-        } else if (duplicatedRecord != null) {
-            throw new DuplicatedRecordException(duplicatedRecord);
         }
-
-        bufferedReader.close();
         
         return accounts;
     }
