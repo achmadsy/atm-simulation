@@ -5,21 +5,23 @@
  */
 package com.mycompany.atm.domain;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 
 /**
  *
  * @author Achmad_ST761
  */
 public class Transaction {
-    private LocalDate transactionDate;
+    private LocalDateTime transactionDate;
     private String transactionType;
     private String amount;
 
     public Transaction() {
     }
 
-    public Transaction(LocalDate transactionDate, String transactionType, String amount) {
+    public Transaction(LocalDateTime transactionDate, String transactionType, String amount) {
         this.transactionDate = transactionDate;
         this.transactionType = transactionType;
         this.amount = amount;
@@ -29,11 +31,16 @@ public class Transaction {
         this.transactionType = transactionType;
     }
    
-    public LocalDate getTransactionDate() {
+    public LocalDateTime getTransactionDate() {
         return transactionDate;
     }
+    
+    public String getFormattedDate() {
+        return this.getTransactionDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a"));
+    }
+    
 
-    public void setTransactionDate(LocalDate transactionDate) {
+    public void setTransactionDate(LocalDateTime transactionDate) {
         this.transactionDate = transactionDate;
     }
 

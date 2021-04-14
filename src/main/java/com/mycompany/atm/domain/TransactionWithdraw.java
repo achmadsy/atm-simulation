@@ -6,7 +6,7 @@
 package com.mycompany.atm.domain;
 
 import com.mycompany.atm.enums.TransactionType;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  *
@@ -14,7 +14,7 @@ import java.time.LocalDate;
  */
 public class TransactionWithdraw extends Transaction {
 
-    public TransactionWithdraw(LocalDate transactionDate, String amount) {
+    public TransactionWithdraw(LocalDateTime transactionDate, String amount) {
         super(transactionDate, TransactionType.WITHDRAW.toString() , amount);
     }
    

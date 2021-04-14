@@ -66,7 +66,7 @@ public class MenuService {
         }  
     }
 
-    public void showTransactionScreen() {
+    private void showTransactionScreen() {
         System.out.println("1. Withdraw");
         System.out.println("2. Fund Transfer");
         System.out.println("3. Transaction History");
@@ -100,7 +100,7 @@ public class MenuService {
         
     }
 
-    public void showWithdrawScreen() {
+    private void showWithdrawScreen() {
         System.out.println("1. $10");
         System.out.println("2. $50");
         System.out.println("3. $100");
@@ -141,6 +141,50 @@ public class MenuService {
             System.out.println(e);
             showWithdrawScreen();
         }
+        
+    }
+
+    private void showWithdrawSummaryScreen() {
+        userLastTransaction = userAccount.getLatestTransactionHistory();
+        System.out.println("Summary");
+        System.out.println("Date : "+userLastTransaction.getFormattedDate());
+        System.out.println("Withdraw : "+userLastTransaction.getAmount());
+        System.out.println("Balance : "+userAccount.getBalance().toString());
+        System.out.println("");
+        System.out.println("1. Transaction");
+        System.out.println("2. Exit");
+        System.out.print("Please choose option[2]: ");
+        option = scanner.nextLine();
+        
+        try {
+           Integer userOpt = Integer.valueOf(option); 
+           clearScreen();
+           switch (userOpt) {
+               case 1:
+                    showTransactionScreen();
+                    break;
+               case 2:
+                    showWelcomeScreen();
+                    break;
+               default:
+                    showWithdrawSummaryScreen();
+                    break;
+           }
+        } catch (NumberFormatException e) {
+            showWithdrawSummaryScreen();
+        }
+        
+    }
+
+    private void showOtherWithdrawScreen() {
+        
+    }
+
+    private void showFundTransferAccountScreen() {
+        
+    }
+
+    private void showHistoryScreen() {
         
     }
     
