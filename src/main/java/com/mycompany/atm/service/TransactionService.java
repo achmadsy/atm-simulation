@@ -103,13 +103,13 @@ public class TransactionService {
         return temp;
     }
 
-    public void fundTransfer(Account userAccount, TransactionFundTransfer transactionFundTransfer) {
-        if (userAccount.getBalance().compareTo(lastTransactionAmount) == -1){
+    public void fundTransfer(Account userAccount, TransactionFundTransfer transaction) {
+        if (userAccount.getBalance().compareTo(new BigDecimal(transaction.getAmount())) == -1){
             throw new InsufficientBalanceException(userAccount);
         }
         String amount = transaction.getAmount();
         userAccount.setBalance(userAccount.getBalance().subtract(new BigDecimal(transaction.getAmount())));
-        transaction.setTransactionDate(date);
+        transaction.setTransactionDate(LocalDateTime.now());
         transaction.setAmount("-"+amount);
         userAccount.addUserTransactionHistory(transaction);
         accountRepositoryImpl.update(userAccount.getAccountNumber(), userAccount.getBalance());
