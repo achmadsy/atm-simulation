@@ -8,6 +8,7 @@ package com.mycompany.atm.service;
 import com.mycompany.atm.custom.exception.AccountNumberDuplicatedException;
 import com.mycompany.atm.custom.exception.DuplicatedRecordException;
 import com.mycompany.atm.custom.exception.IncorrectCSVDataException;
+import com.mycompany.atm.custom.exception.InvalidAccountException;
 import com.mycompany.atm.daoImpl.AccountDaoImpl;
 import com.mycompany.atm.domain.Account;
 import com.mycompany.atm.repositoryImpl.AccountRepositoryImpl;
@@ -60,6 +61,18 @@ public class TransactionService {
                 .collect(Collectors.toList());
         
         return Stream.concat(listAccontsFromCSV.stream(), listAccount.stream()).collect(Collectors.toList());
+    }
+    
+    public Account getAccount(String accountNum, String pin) {
+        Account account = accountRepositoryImpl.get(accountNum, pin);
+        if (account.getAccountNumber() == null){
+            throw new InvalidAccountException();
+        }
+        return account;
+    }
+    
+    public Boolean isAccountAvailable(String accountNum) {
+        return accountRepositoryImpl.find(accountNum) != null;
     }
     
 }

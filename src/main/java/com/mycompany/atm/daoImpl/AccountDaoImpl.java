@@ -33,12 +33,12 @@ public class AccountDaoImpl implements AccountDao {
     @Override
     public Account get(String accountNumber, String pin) {
         return Main.listAccounts.stream().filter(e -> e.getAccountNumber().equals(accountNumber)
-            && e.getPin().equals(pin)).findFirst().orElse(null);
+            && e.getPin().equals(pin)).findFirst().orElse(new Account());
     }
 
     @Override
     public Account find(String accountNumber) {
-        return Main.listAccounts.stream().filter(e -> e.getAccountNumber().equals(accountNumber)).findFirst().orElse(null);
+        return Main.listAccounts.stream().filter(e -> e.getAccountNumber().equals(accountNumber)).findFirst().orElse(new Account());
     }
     
     @Override

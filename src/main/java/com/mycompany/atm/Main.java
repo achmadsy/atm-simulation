@@ -5,12 +5,9 @@
  */
 package com.mycompany.atm;
 
-import com.mycompany.atm.custom.exception.AccountNumberDuplicatedException;
-import com.mycompany.atm.custom.exception.DuplicatedRecordException;
-import com.mycompany.atm.custom.exception.IncorrectCSVDataException;
 import com.mycompany.atm.domain.Account;
+import com.mycompany.atm.service.MenuService;
 import com.mycompany.atm.service.TransactionService;
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -24,7 +21,10 @@ public class Main {
     public static void main(String[] args) {
         filePath = args[0];
         TransactionService transactionService = new TransactionService();
+        MenuService menuService = new MenuService();
         listAccounts = transactionService.getAccounts();
+        menuService.clearScreen();
+        menuService.showWelcomeScreen();
     }
     
 }
