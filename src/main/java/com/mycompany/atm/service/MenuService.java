@@ -6,12 +6,19 @@
 package com.mycompany.atm.service;
 
 import com.mycompany.atm.custom.exception.AccountNumberException;
-import com.mycompany.atm.custom.exception.BalanceException;
+import com.mycompany.atm.custom.exception.InsufficientBalanceException;
 import com.mycompany.atm.custom.exception.InvalidAccountException;
+import com.mycompany.atm.custom.exception.InvalidAmountException;
+import com.mycompany.atm.custom.exception.InvalidReferenceException;
+import com.mycompany.atm.custom.exception.MaximumAmountException;
+import com.mycompany.atm.custom.exception.MinimumAmountException;
+import com.mycompany.atm.custom.exception.MultiplyAmountException;
 import com.mycompany.atm.custom.exception.PinException;
 import com.mycompany.atm.domain.Account;
 import com.mycompany.atm.domain.Transaction;
+import com.mycompany.atm.domain.TransactionFundTransfer;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Scanner;
 
 /**
@@ -73,10 +80,10 @@ public class MenuService {
         System.out.println("4. Exit");
         System.out.print("Please choose option[3]: ");
         option = scanner.nextLine();
+        clearScreen();
         
         try {
            Integer userOpt = Integer.valueOf(option); 
-           clearScreen();
            switch (userOpt) {
                case 1:
                     showWithdrawScreen();
@@ -108,10 +115,10 @@ public class MenuService {
         System.out.println("5. Back");
         System.out.print("Please choose option[5]: ");
         option = scanner.nextLine();
+        clearScreen();
         
         try {
             Integer userOpt = Integer.valueOf(option); 
-            clearScreen();
             switch (userOpt) {
                case 1:
                     transactionService.withdraw(userAccount,10);
@@ -137,7 +144,7 @@ public class MenuService {
            }
         } catch (NumberFormatException e) {
             showWithdrawScreen();
-        } catch (BalanceException e) {
+        } catch (InsufficientBalanceException e) {
             System.out.println(e);
             showWithdrawScreen();
         }
@@ -155,10 +162,10 @@ public class MenuService {
         System.out.println("2. Exit");
         System.out.print("Please choose option[2]: ");
         option = scanner.nextLine();
+        clearScreen();
         
         try {
            Integer userOpt = Integer.valueOf(option); 
-           clearScreen();
            switch (userOpt) {
                case 1:
                     showTransactionScreen();
@@ -177,18 +184,151 @@ public class MenuService {
     }
 
     private void showOtherWithdrawScreen() {
+        System.out.println("Other Withdraw");
+        System.out.print("Enter amount to withdraw: ");
+        option = scanner.nextLine();
+        clearScreen();
         
-    }
-
-    private void showFundTransferAccountScreen() {
+        try {
+            Integer userAmount = Integer.valueOf(option); 
+            validationService.amountValidation(userAmount);
+            transactionService.withdraw(userAccount,userAmount);
+            showWithdrawSummaryScreen();
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid Amount");
+            showOtherWithdrawScreen();
+        } catch (MultiplyAmountException | MaximumAmountException | MinimumAmountException e) {
+            System.out.println(e);
+            showOtherWithdrawScreen();
+        }
         
     }
 
     private void showHistoryScreen() {
-        
+        System.out.println("User Transaction History");
+        System.out.println("Type                    Amount");
+        userAccount.getTransactionHistory().stream().forEach(e -> {
+            System.out.println(e.getTransactionType()+"                 "+e.getAmount());
+        });
+        System.out.println("Press enter to back to the main menu");
+        scanner.nextLine();
+        clearScreen();
+        showTransactionScreen();
     }
     
-    
+    private void showFundTransferAccountScreen() {
+        System.out.println("Please enter destination account and");
+        System.out.println("press enter to continue or");
+        System.out.print("press enter to go back to Transaction: ");
+        option = scanner.nextLine();
+        clearScreen();
+        if (option.isEmpty()) {
+            showTransactionScreen();
+        } else {
+            userLastTransaction = new TransactionFundTransfer();
+            ((TransactionFundTransfer) userLastTransaction).setDestAccount(option);
+            showFundTransferAmountScreen();
+        }
+    }
+
+    private void showFundTransferAmountScreen() {
+        System.out.println("Please enter transfer amount and press enter to continue or");
+        System.out.print("press enter to go back to Transaction: ");
+        option = scanner.nextLine();
+        clearScreen();
+        if (option.isEmpty()) {
+            showTransactionScreen();
+        } else {
+            ((TransactionFundTransfer) userLastTransaction).setAmount(option);
+            showFundTransferRefScreen();
+        }
+    }
+
+    private void showFundTransferRefScreen() {
+        String rand = transactionService.getRandomRefNum();
+        System.out.println("Reference Number: "+rand+" (This is an autogenerated random 6 digits number)");
+        System.out.println("press enter to continue: ");
+        ((TransactionFundTransfer) userLastTransaction).setRefNumber(rand);
+        scanner.nextLine();
+        clearScreen();
+        showFundTransferConfirmScreen();
+    }
+
+    private void showFundTransferConfirmScreen() {
+        System.out.println("Transfer Confirmation");
+        System.out.println("Destination Account : "+((TransactionFundTransfer) userLastTransaction).getDestAccount());
+        System.out.println("Transfer Amount     : $"+((TransactionFundTransfer) userLastTransaction).getAmount());
+        System.out.println("Reference Number    : "+((TransactionFundTransfer) userLastTransaction).getRefNumber());
+        System.out.println("");
+        System.out.println("1. Confirm Trx");
+        System.out.println("2. Cancel Trx");
+        System.out.print("Choose option[2]: ");
+        option = scanner.nextLine();
+        BigDecimal lastTransactionAmount = new BigDecimal(0);
+        clearScreen();
+        
+        try {
+            Integer userOpt = Integer.valueOf(option); 
+            
+            switch (userOpt) {
+                case 1:
+                    validationService.credentialsValidation("AccountNumber", ((TransactionFundTransfer) userLastTransaction).getDestAccount());
+                    transactionService.checkAccountAvailability(((TransactionFundTransfer) userLastTransaction).getDestAccount());
+                    validationService.checkNumericAmount(((TransactionFundTransfer) userLastTransaction).getAmount());
+                    validationService.amountValidation(Integer.valueOf(((TransactionFundTransfer) userLastTransaction).getAmount()));
+                    validationService.checkRefNumber(((TransactionFundTransfer) userLastTransaction).getRefNumber());
+                    transactionService.fundTransfer(userAccount, (TransactionFundTransfer) userLastTransaction);
+                    showFundTransferSummaryScreen();
+                    break;
+                case 2:
+                    showTransactionScreen();
+                    break;
+                default:
+                    showFundTransferConfirmScreen();
+                    break;
+            }
+                   
+        } catch (NumberFormatException e) {
+            showFundTransferConfirmScreen();
+        } catch (AccountNumberException | InvalidAccountException | InvalidAmountException | MultiplyAmountException | MaximumAmountException | MinimumAmountException |
+                InvalidReferenceException e) {
+            System.out.println(e);
+            showTransactionScreen();
+        }
+        
+    }
+
+    private void showFundTransferSummaryScreen() {
+        userLastTransaction = userAccount.getLatestTransactionHistory();
+        System.out.println("Fund Transfer Summary");
+        System.out.println("Destination Account : "+((TransactionFundTransfer)userLastTransaction).getDestAccount());
+        System.out.println("Transfer Amount     : "+((TransactionFundTransfer)userLastTransaction).getAmount());
+        System.out.println("Reference Number    : "+((TransactionFundTransfer)userLastTransaction).getRefNumber());
+        System.out.println("Balance             : "+userAccount.getBalance());  
+        System.out.println("");
+        System.out.println("1. Transaction");
+        System.out.println("2. Exit");
+        System.out.print("Choose option[2]: ");
+        option = scanner.nextLine();
+        clearScreen();
+        
+        try {
+            Integer userOpt = Integer.valueOf(option); 
+            switch (userOpt){
+                case 1:
+                    showTransactionScreen();
+                    break;
+                case 2:
+                    showWelcomeScreen();
+                    break;
+                default: 
+                    showFundTransferSummaryScreen();
+                    break;
+            }
+        } catch(NumberFormatException e) {
+            showFundTransferSummaryScreen();
+        }
+    }
     
     
 }
