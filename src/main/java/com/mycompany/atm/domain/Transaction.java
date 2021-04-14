@@ -5,21 +5,21 @@
  */
 package com.mycompany.atm.domain;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 /**
  *
  * @author Achmad_ST761
  */
 public class Transaction {
-    private Date transactionDate;
+    private LocalDate transactionDate;
     private String transactionType;
     private String amount;
 
     public Transaction() {
     }
 
-    public Transaction(Date transactionDate, String transactionType, String amount) {
+    public Transaction(LocalDate transactionDate, String transactionType, String amount) {
         this.transactionDate = transactionDate;
         this.transactionType = transactionType;
         this.amount = amount;
@@ -29,11 +29,11 @@ public class Transaction {
         this.transactionType = transactionType;
     }
    
-    public Date getTransactionDate() {
+    public LocalDate getTransactionDate() {
         return transactionDate;
     }
 
-    public void setTransactionDate(Date transactionDate) {
+    public void setTransactionDate(LocalDate transactionDate) {
         this.transactionDate = transactionDate;
     }
 

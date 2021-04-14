@@ -6,14 +6,18 @@
 package com.mycompany.atm.service;
 
 import com.mycompany.atm.custom.exception.AccountNumberDuplicatedException;
+import com.mycompany.atm.custom.exception.BalanceException;
 import com.mycompany.atm.custom.exception.DuplicatedRecordException;
 import com.mycompany.atm.custom.exception.IncorrectCSVDataException;
 import com.mycompany.atm.custom.exception.InvalidAccountException;
 import com.mycompany.atm.daoImpl.AccountDaoImpl;
 import com.mycompany.atm.domain.Account;
+import com.mycompany.atm.domain.Transaction;
+import com.mycompany.atm.domain.TransactionWithdraw;
 import com.mycompany.atm.repositoryImpl.AccountRepositoryImpl;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -73,6 +77,17 @@ public class TransactionService {
     
     public Boolean isAccountAvailable(String accountNum) {
         return accountRepositoryImpl.find(accountNum) != null;
+    }
+    
+    public void withdraw(Account userAccount, int amount) {
+        if (BigDecimal.valueOf(amount).compareTo(userAccount.getBalance()) != 1) {
+            userAccount.updateUserAmount(amount);
+            Transaction transaction = new TransactionWithdraw(LocalDate.now(), "-"+String.valueOf(amount));
+            userAccount.addUserTransactionHistory(transaction);
+            accountRepositoryImpl.update(userAccount.getAccountNumber(), userAccount.getBalance());
+        } else {
+            throw new BalanceException(userAccount);
+        }
     }
     
 }

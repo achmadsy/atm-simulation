@@ -6,6 +6,7 @@
 package com.mycompany.atm.service;
 
 import com.mycompany.atm.custom.exception.AccountNumberException;
+import com.mycompany.atm.custom.exception.BalanceException;
 import com.mycompany.atm.custom.exception.InvalidAccountException;
 import com.mycompany.atm.custom.exception.PinException;
 import com.mycompany.atm.domain.Account;
@@ -56,6 +57,7 @@ public class MenuService {
             pin = scanner.nextLine();
             validationService.credentialsValidation("Pin", pin);
             userAccount = transactionService.getAccount(accountNum, pin);
+            clearScreen();
             showTransactionScreen();
         } catch (AccountNumberException | PinException | InvalidAccountException e) {
             clearScreen();
@@ -65,8 +67,84 @@ public class MenuService {
     }
 
     public void showTransactionScreen() {
+        System.out.println("1. Withdraw");
+        System.out.println("2. Fund Transfer");
+        System.out.println("3. Transaction History");
+        System.out.println("4. Exit");
+        System.out.print("Please choose option[3]: ");
+        option = scanner.nextLine();
+        
+        try {
+           Integer userOpt = Integer.valueOf(option); 
+           clearScreen();
+           switch (userOpt) {
+               case 1:
+                    showWithdrawScreen();
+                    break;
+               case 2:
+                    showFundTransferAccountScreen();
+                    break;
+               case 3:
+                    showHistoryScreen();
+                    break;
+               case 4:
+                    showWelcomeScreen();
+                    break;
+               default:
+                    showTransactionScreen();
+                    break;
+           }
+        } catch (NumberFormatException e) {
+            showTransactionScreen();
+        }
         
     }
+
+    public void showWithdrawScreen() {
+        System.out.println("1. $10");
+        System.out.println("2. $50");
+        System.out.println("3. $100");
+        System.out.println("4. Other");
+        System.out.println("5. Back");
+        System.out.print("Please choose option[5]: ");
+        option = scanner.nextLine();
+        
+        try {
+            Integer userOpt = Integer.valueOf(option); 
+            clearScreen();
+            switch (userOpt) {
+               case 1:
+                    transactionService.withdraw(userAccount,10);
+                    showWithdrawSummaryScreen();
+                    break;
+               case 2:
+                    transactionService.withdraw(userAccount,50);
+                    showWithdrawSummaryScreen();
+                    break;
+               case 3:
+                    transactionService.withdraw(userAccount,100);
+                    showWithdrawSummaryScreen();
+                    break;
+               case 4:
+                    showOtherWithdrawScreen();
+                    break;
+               case 5:
+                    showTransactionScreen();;
+                    break;
+               default:
+                    showWithdrawScreen();
+                    break;
+           }
+        } catch (NumberFormatException e) {
+            showWithdrawScreen();
+        } catch (BalanceException e) {
+            System.out.println(e);
+            showWithdrawScreen();
+        }
+        
+    }
+    
+    
     
     
 }
