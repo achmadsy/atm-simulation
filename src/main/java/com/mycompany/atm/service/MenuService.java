@@ -29,12 +29,13 @@ public class MenuService {
     
     private final Scanner scanner = new Scanner(System.in);
     private final ValidationService validationService = new ValidationService();
-    private final TransactionService transactionService = new TransactionService();
+    private final TransactionService transactionService;
     private Account userAccount;
     private Transaction userLastTransaction;
     private String option;
     
-    public MenuService() {
+    public MenuService(TransactionService transactionService) {
+        this.transactionService = transactionService;
     }
 
     public void clearScreen() {
@@ -155,7 +156,7 @@ public class MenuService {
         userLastTransaction = userAccount.getLatestTransactionHistory();
         System.out.println("Summary");
         System.out.println("Date : "+userLastTransaction.getFormattedDate());
-        System.out.println("Withdraw $: "+userLastTransaction.getAmount().substring(1,userLastTransaction.getAmount().length()));
+        System.out.println("Withdraw $: "+userLastTransaction.getAmount().toString());
         System.out.println("Balance $: "+userAccount.getBalance().toString());
         System.out.println("");
         System.out.println("1. Transaction");
@@ -210,7 +211,6 @@ public class MenuService {
         userAccount.getTransactionHistory().stream().forEach(e -> {
             System.out.println(e.getTransactionType()+"                 "+e.getAmount());
         });
-//            System.out.println(userAccount.getTransactionHistory().size());
         System.out.println("Press enter to back to the main menu");
         scanner.nextLine();
         clearScreen();
@@ -240,8 +240,14 @@ public class MenuService {
         if (option.isEmpty()) {
             showTransactionScreen();
         } else {
-            ((TransactionFundTransfer) userLastTransaction).setAmount(option);
-            showFundTransferRefScreen();
+            try {
+                ((TransactionFundTransfer) userLastTransaction).setAmount(Integer.valueOf(option));
+                showFundTransferRefScreen();
+            } catch (NumberFormatException e) {
+                clearScreen();
+                System.out.println("Invalid Amount");
+                showFundTransferAmountScreen();
+            }
         }
     }
 
@@ -256,16 +262,17 @@ public class MenuService {
     }
 
     private void showFundTransferConfirmScreen() {
+        TransactionFundTransfer fundTransfer = (TransactionFundTransfer) userLastTransaction;
+        BigDecimal lastTransactionAmount = new BigDecimal(0);
         System.out.println("Transfer Confirmation");
-        System.out.println("Destination Account : "+((TransactionFundTransfer) userLastTransaction).getDestAccount());
-        System.out.println("Transfer Amount     : $"+((TransactionFundTransfer) userLastTransaction).getAmount());
-        System.out.println("Reference Number    : "+((TransactionFundTransfer) userLastTransaction).getRefNumber());
+        System.out.println("Destination Account : "+fundTransfer.getDestAccount());
+        System.out.println("Transfer Amount     : $"+fundTransfer.getAmount());
+        System.out.println("Reference Number    : "+fundTransfer.getRefNumber());
         System.out.println("");
         System.out.println("1. Confirm Trx");
         System.out.println("2. Cancel Trx");
         System.out.print("Choose option[2]: ");
         option = scanner.nextLine();
-        BigDecimal lastTransactionAmount = new BigDecimal(0);
         clearScreen();
         
         try {
@@ -273,12 +280,11 @@ public class MenuService {
             
             switch (userOpt) {
                 case 1:
-                    validationService.credentialsValidation("AccountNumber", ((TransactionFundTransfer) userLastTransaction).getDestAccount());
-                    transactionService.checkAccountAvailability(((TransactionFundTransfer) userLastTransaction).getDestAccount());
-                    validationService.checkNumericAmount(((TransactionFundTransfer) userLastTransaction).getAmount());
-                    validationService.amountValidation(Integer.valueOf(((TransactionFundTransfer) userLastTransaction).getAmount()));
-                    validationService.checkRefNumber(((TransactionFundTransfer) userLastTransaction).getRefNumber());
-                    transactionService.fundTransfer(userAccount, (TransactionFundTransfer) userLastTransaction);
+                    validationService.credentialsValidation("AccountNumber", fundTransfer.getDestAccount());
+                    transactionService.checkAccountAvailability(fundTransfer.getDestAccount());
+                    validationService.amountValidation(fundTransfer.getAmount());
+                    validationService.checkRefNumber(fundTransfer.getRefNumber());
+                    transactionService.fundTransfer(userAccount, fundTransfer);
                     showFundTransferSummaryScreen();
                     break;
                 case 2:
@@ -300,11 +306,11 @@ public class MenuService {
     }
 
     private void showFundTransferSummaryScreen() {
-        userLastTransaction = userAccount.getLatestTransactionHistory();
+        TransactionFundTransfer fundTransfer = (TransactionFundTransfer) userAccount.getLatestTransactionHistory();
         System.out.println("Fund Transfer Summary");
-        System.out.println("Destination Account : "+((TransactionFundTransfer)userLastTransaction).getDestAccount());
-        System.out.println("Transfer Amount     : $"+((TransactionFundTransfer)userLastTransaction).getAmount().substring(1, ((TransactionFundTransfer)userLastTransaction).getAmount().length()));
-        System.out.println("Reference Number    : "+((TransactionFundTransfer)userLastTransaction).getRefNumber());
+        System.out.println("Destination Account : "+fundTransfer.getDestAccount());
+        System.out.println("Transfer Amount     : $"+fundTransfer.getAmount());
+        System.out.println("Reference Number    : "+fundTransfer.getRefNumber());
         System.out.println("Balance             : "+userAccount.getBalance());  
         System.out.println("");
         System.out.println("1. Transaction");

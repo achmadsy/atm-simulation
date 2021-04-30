@@ -32,16 +32,16 @@ import java.util.stream.Stream;
 public class TransactionService {
     private final AccountRepositoryImpl accountRepositoryImpl;
     
-    public TransactionService() {
-        this.accountRepositoryImpl = new AccountRepositoryImpl(new AccountDaoImpl());
+    public TransactionService(String filePath) {
+        this.accountRepositoryImpl = new AccountRepositoryImpl(new AccountDaoImpl(this.getAccounts(filePath)));
     }
     
-    public List<Account> readAllFromCSV() {
+    public List<Account> readAllFromCSV(String filePath) {
         
         List<Account> listAccounts = new ArrayList<>();
         
         try{    
-            listAccounts = accountRepositoryImpl.readAllFromCSV();
+            listAccounts = accountRepositoryImpl.readAllFromCSV(filePath);
         } catch (AccountNumberDuplicatedException|DuplicatedRecordException|IOException|IncorrectCSVDataException e) {
             System.out.println("IMPORT INFO : "+e.getMessage());
         }
@@ -59,9 +59,9 @@ public class TransactionService {
         return listAccounts;
     }
     
-    public List<Account> getAccounts() {
+    public List<Account> getAccounts(String filePath) {
         List<Account> listAccontsDefault = this.getDefaultAccounts();
-        final List<Account> listAccontsFromCSV = this.readAllFromCSV(); 
+        final List<Account> listAccontsFromCSV = this.readAllFromCSV(filePath); 
            
         List<Account> listAccount = listAccontsDefault.stream().filter(o -> listAccontsFromCSV.stream().anyMatch(csv -> !csv.getAccountName().equals(o.getAccountName())))
                 .collect(Collectors.toList());
@@ -89,9 +89,10 @@ public class TransactionService {
     }
     
     public void withdraw(Account userAccount, int amount) {
-        if (BigDecimal.valueOf(amount).compareTo(userAccount.getBalance()) != 1) {
+        if (isUserHaveBalance(new BigDecimal(amount), userAccount.getBalance())) {
             userAccount.updateUserAmount(amount);
-            Transaction transaction = new TransactionWithdraw(LocalDateTime.now(), "-"+String.valueOf(amount));
+            Transaction transaction = new TransactionWithdraw(LocalDateTime.now(), amount);
+            transaction.setAmountValueSign("-");
             userAccount.addUserTransactionHistory(transaction);
             accountRepositoryImpl.update(userAccount.getAccountNumber(), userAccount.getBalance());
         } else {
@@ -109,23 +110,38 @@ public class TransactionService {
     }
 
     public void fundTransfer(Account userAccount, TransactionFundTransfer transaction) {
-        if (userAccount.getBalance().compareTo(new BigDecimal(transaction.getAmount())) == -1){
+        if (isUserHaveBalance(new BigDecimal(transaction.getAmount()), userAccount.getBalance())) {
+            Account otherAccount = accountRepositoryImpl.find(transaction.getDestAccount());
+            TransactionFundTransfer otherAccountTransaction = new TransactionFundTransfer();
+            Integer amount = transaction.getAmount();
+            
+            transaction.setAmountValueSign("-");
+            transaction.setTransactionDate(LocalDateTime.now());
+            updateAccount(userAccount, transaction, amount);
+            
+            otherAccountTransaction.setAmountValueSign("+");
+            otherAccountTransaction.setRefNumber(transaction.getRefNumber());
+            otherAccountTransaction.setTransactionDate(transaction.getTransactionDate());
+            updateAccount(otherAccount, otherAccountTransaction, amount);
+            
+        } else {
             throw new InsufficientBalanceException(userAccount);
         }
-        String amount = transaction.getAmount();
-        userAccount.setBalance(userAccount.getBalance().subtract(new BigDecimal(transaction.getAmount())));
-        transaction.setTransactionDate(LocalDateTime.now());
-        transaction.setAmount("-"+amount);
-        userAccount.addUserTransactionHistory(transaction);
-        accountRepositoryImpl.update(userAccount.getAccountNumber(), userAccount.getBalance());
-        Account otherAccount = accountRepositoryImpl.find(transaction.getDestAccount());
-        otherAccount.setBalance(otherAccount.getBalance().add(new BigDecimal(amount)));
-        TransactionFundTransfer otherAccountTransaction = new TransactionFundTransfer();
-        otherAccountTransaction.setRefNumber(transaction.getRefNumber());
-        otherAccountTransaction.setTransactionDate(transaction.getTransactionDate());
-        otherAccountTransaction.setAmount("+"+amount);
-        otherAccount.addUserTransactionHistory(otherAccountTransaction);
-        accountRepositoryImpl.update(otherAccount.getAccountNumber(), otherAccount.getBalance());
+    }
+
+    private boolean isUserHaveBalance(BigDecimal amount, BigDecimal userBalance) {
+        return amount.compareTo(userBalance) != 1;
+    }
+    
+    private void updateAccount(Account account, TransactionFundTransfer transaction, Integer amount) {
+        if (transaction.getAmountValueSign().equals("-")) {
+            account.setBalance(account.getBalance().subtract(new BigDecimal(transaction.getAmount())));
+        } else {
+            account.setBalance(account.getBalance().add(new BigDecimal(amount)));
+        }
+        transaction.setAmount(amount);
+        account.addUserTransactionHistory(transaction);
+        accountRepositoryImpl.update(account.getAccountNumber(), account.getBalance());
     }
     
 }

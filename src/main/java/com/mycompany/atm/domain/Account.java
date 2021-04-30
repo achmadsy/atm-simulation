@@ -5,7 +5,6 @@
  */
 package com.mycompany.atm.domain;
 
-import com.mycompany.atm.enums.TransactionType;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
@@ -85,7 +84,7 @@ public class Account {
     }
     
     public Transaction getLatestTransactionHistory(){
-        return this.transactionHistory.stream().filter(e -> e.getAmount().contains("-")).reduce((first, second) -> second).get();
+        return this.transactionHistory.stream().filter(e -> e.getAmountValueSign().equals("-")).reduce((first, second) -> second).get();
     }
     
     

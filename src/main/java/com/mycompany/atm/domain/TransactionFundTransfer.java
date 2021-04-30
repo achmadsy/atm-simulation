@@ -17,7 +17,7 @@ public class TransactionFundTransfer extends Transaction {
     private String destAccount;
     private String refNumber;
     
-    public TransactionFundTransfer(LocalDateTime transactionDate, String amount, String destAccount, String refNumber) {
+    public TransactionFundTransfer(LocalDateTime transactionDate, Integer amount, String destAccount, String refNumber) {
         super(transactionDate, TransactionType.FUND_TRANSFER.toString(), amount);
         this.destAccount = destAccount;
         this.refNumber = refNumber;

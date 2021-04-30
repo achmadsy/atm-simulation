@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  */
 public class TransactionWithdraw extends Transaction {
 
-    public TransactionWithdraw(LocalDateTime transactionDate, String amount) {
+    public TransactionWithdraw(LocalDateTime transactionDate, Integer amount) {
         super(transactionDate, TransactionType.WITHDRAW.toString() , amount);
     }
    

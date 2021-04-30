@@ -7,7 +7,6 @@ package com.mycompany.atm.domain;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 
 /**
  *
@@ -16,12 +15,13 @@ import java.time.format.DateTimeFormatterBuilder;
 public class Transaction {
     private LocalDateTime transactionDate;
     private String transactionType;
-    private String amount;
+    private Integer amount;
+    private String amountValueSign;
 
     public Transaction() {
     }
 
-    public Transaction(LocalDateTime transactionDate, String transactionType, String amount) {
+    public Transaction(LocalDateTime transactionDate, String transactionType, Integer amount) {
         this.transactionDate = transactionDate;
         this.transactionType = transactionType;
         this.amount = amount;
@@ -52,13 +52,20 @@ public class Transaction {
         this.transactionType = transactionType;
     }
 
-    public String getAmount() {
+    public Integer getAmount() {
         return amount;
     }
 
-    public void setAmount(String amount) {
+    public void setAmount(Integer amount) {
         this.amount = amount;
     }
+
+    public String getAmountValueSign() {
+        return amountValueSign;
+    }
+
+    public void setAmountValueSign(String amountValueSign) {
+        this.amountValueSign = amountValueSign;
+    }
  
-    
 }

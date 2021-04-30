@@ -38,8 +38,8 @@ public class AccountRepositoryImpl implements AccountRepository{
     }
 
     @Override
-    public List<Account> readAllFromCSV() throws IOException, IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException {
-        return accountDaoImpl.readAllFromCSV();
+    public List<Account> readAllFromCSV(String filePath) throws IOException, IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException {
+        return accountDaoImpl.readAllFromCSV(filePath);
     }
 
     @Override

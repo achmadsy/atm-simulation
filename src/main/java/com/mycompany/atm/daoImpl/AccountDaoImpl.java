@@ -5,22 +5,18 @@
  */
 package com.mycompany.atm.daoImpl;
 
-import com.mycompany.atm.Main;
 import com.mycompany.atm.custom.exception.AccountNumberDuplicatedException;
 import com.mycompany.atm.custom.exception.DuplicatedRecordException;
 import com.mycompany.atm.custom.exception.IncorrectCSVDataException;
 import com.mycompany.atm.dao.AccountDao;
 import com.mycompany.atm.domain.Account;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -28,63 +24,56 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class AccountDaoImpl implements AccountDao {
     
-    private final String filePath;
+    private List<Account> listAccounts; 
 
     @Override
     public Account get(String accountNumber, String pin) {
-        return Main.listAccounts.stream().filter(e -> e.getAccountNumber().equals(accountNumber)
+        return this.listAccounts.stream().filter(e -> e.getAccountNumber().equals(accountNumber)
             && e.getPin().equals(pin)).findFirst().orElse(new Account());
     }
 
     @Override
     public Account find(String accountNumber) {
-        return Main.listAccounts.stream().filter(e -> e.getAccountNumber().equals(accountNumber)).findFirst().orElse(new Account());
+        return this.listAccounts.stream().filter(e -> e.getAccountNumber().equals(accountNumber)).findFirst().orElse(new Account());
     }
     
     @Override
     public void update(String accountNumber, BigDecimal newBalance) {
-        Main.listAccounts.stream().filter(e -> e.getAccountNumber().equals(accountNumber)).forEach(x -> {
+        this.listAccounts.stream().filter(e -> e.getAccountNumber().equals(accountNumber)).forEach(x -> {
             x.setBalance(newBalance);
         });
     }
 
-    public AccountDaoImpl() {
-        this.filePath = Main.filePath;
+    public AccountDaoImpl(List<Account> accounts) {
+        this.listAccounts = accounts;
     }
        
     @Override
-    public List<Account> readAllFromCSV() throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException {
+    public List<Account> readAllFromCSV(String filePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException {
         List<Account> accounts = new ArrayList<>();
-        AtomicInteger accountFixedCount = new AtomicInteger(0);
+        Integer accountCounts = Files.readAllLines(Paths.get(filePath)).size()-1;
         
         if (!filePath.isEmpty()) {
-        
-            File file = new File(filePath);
-            InputStream inputStream = new FileInputStream(file);
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-
-            bufferedReader.lines().skip(1).forEach(e -> {
+                    
+            accounts = Files.readAllLines(Paths.get(filePath)).stream().skip(1).map(line -> {
                 Account account = null;
-                String[] data = e.split(",");
+                String[] data = line.split(",");
                 if (data.length == 4) {
-                    accounts.add(new Account(data[0],data[1],data[2],new BigDecimal(data[3]), new ArrayList<>()));
+                    return new Account(data[0],data[1],data[2],new BigDecimal(data[3]), new ArrayList<>());
                 }
-                accountFixedCount.getAndIncrement();
-            });
-
+                return null;
+            }).filter(account -> account != null).collect(Collectors.toList());
 
             String duplicatedAccNumber = checkAccountNumberDuplicate(accounts);
             Account duplicatedRecord = checkDuplicatedRecord(accounts);
 
-            if (accounts.size() != accountFixedCount.intValue()) {
+            if (accounts.size() != accountCounts) {
                 throw new IncorrectCSVDataException();
-            } else if (duplicatedAccNumber != null){
-                throw new AccountNumberDuplicatedException(duplicatedAccNumber);
             } else if (duplicatedRecord != null) {
                 throw new DuplicatedRecordException(duplicatedRecord);
-            }
-
-            bufferedReader.close();
+            } else if (duplicatedAccNumber != null){
+                throw new AccountNumberDuplicatedException(duplicatedAccNumber);
+            } 
         
         }
         

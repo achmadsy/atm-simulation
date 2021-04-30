@@ -21,5 +21,5 @@ public interface AccountDao {
     public Account get(String accountNumber, String pin);
     public Account find(String accountNumber);
     public void update(String accountNumber, BigDecimal newBalance);
-    public List<Account> readAllFromCSV() throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException;
+    public List<Account> readAllFromCSV(String filePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException;
 }

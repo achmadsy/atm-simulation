@@ -5,10 +5,8 @@
  */
 package com.mycompany.atm;
 
-import com.mycompany.atm.domain.Account;
 import com.mycompany.atm.service.MenuService;
 import com.mycompany.atm.service.TransactionService;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
@@ -16,17 +14,15 @@ import java.util.NoSuchElementException;
  * @author Achmad_ST761
  */
 public class Main {
-    public static String filePath = "";
-    public static List<Account> listAccounts; 
+    private static String filePath = "";
     
     public static void main(String[] args) {
         if (args.length > 0) {
             filePath = args[0];
         }
-        TransactionService transactionService = new TransactionService();
-        MenuService menuService = new MenuService();
+        TransactionService transactionService = new TransactionService(filePath);
+        MenuService menuService = new MenuService(transactionService);
         menuService.clearScreen();
-        listAccounts = transactionService.getAccounts();
         try {
             menuService.showWelcomeScreen();
         } catch (NoSuchElementException e) {
