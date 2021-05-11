@@ -16,7 +16,6 @@ public class Transaction {
     private LocalDateTime transactionDate;
     private String transactionType;
     private Integer amount;
-    private String amountValueSign;
 
     public Transaction() {
     }
@@ -58,14 +57,6 @@ public class Transaction {
 
     public void setAmount(Integer amount) {
         this.amount = amount;
-    }
-
-    public String getAmountValueSign() {
-        return amountValueSign;
-    }
-
-    public void setAmountValueSign(String amountValueSign) {
-        this.amountValueSign = amountValueSign;
     }
  
 }

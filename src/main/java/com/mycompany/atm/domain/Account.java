@@ -84,7 +84,7 @@ public class Account {
     }
     
     public Transaction getLatestTransactionHistory(){
-        return this.transactionHistory.stream().filter(e -> e.getAmountValueSign().equals("-")).reduce((first, second) -> second).get();
+        return this.transactionHistory.stream().filter(e -> e.getAmount() < 0).reduce((first, second) -> second).get();
     }
     
     

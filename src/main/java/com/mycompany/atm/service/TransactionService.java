@@ -91,8 +91,7 @@ public class TransactionService {
     public void withdraw(Account userAccount, int amount) {
         if (isUserHaveBalance(new BigDecimal(amount), userAccount.getBalance())) {
             userAccount.updateUserAmount(amount);
-            Transaction transaction = new TransactionWithdraw(LocalDateTime.now(), amount);
-            transaction.setAmountValueSign("-");
+            Transaction transaction = new TransactionWithdraw(LocalDateTime.now(), amount*-1);
             userAccount.addUserTransactionHistory(transaction);
             accountRepositoryImpl.update(userAccount.getAccountNumber(), userAccount.getBalance());
         } else {
@@ -115,11 +114,9 @@ public class TransactionService {
             TransactionFundTransfer otherAccountTransaction = new TransactionFundTransfer();
             Integer amount = transaction.getAmount();
             
-            transaction.setAmountValueSign("-");
             transaction.setTransactionDate(LocalDateTime.now());
-            updateAccount(userAccount, transaction, amount);
+            updateAccount(userAccount, transaction, amount*-1);
             
-            otherAccountTransaction.setAmountValueSign("+");
             otherAccountTransaction.setRefNumber(transaction.getRefNumber());
             otherAccountTransaction.setTransactionDate(transaction.getTransactionDate());
             updateAccount(otherAccount, otherAccountTransaction, amount);
@@ -134,11 +131,8 @@ public class TransactionService {
     }
     
     private void updateAccount(Account account, TransactionFundTransfer transaction, Integer amount) {
-        if (transaction.getAmountValueSign().equals("-")) {
-            account.setBalance(account.getBalance().subtract(new BigDecimal(transaction.getAmount())));
-        } else {
-            account.setBalance(account.getBalance().add(new BigDecimal(amount)));
-        }
+        account.setBalance(account.getBalance().add(new BigDecimal(amount)));
+
         transaction.setAmount(amount);
         account.addUserTransactionHistory(transaction);
         accountRepositoryImpl.update(account.getAccountNumber(), account.getBalance());
