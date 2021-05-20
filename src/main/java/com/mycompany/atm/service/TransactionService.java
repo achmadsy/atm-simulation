@@ -22,8 +22,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  *
@@ -32,8 +30,8 @@ import java.util.stream.Stream;
 public class TransactionService {
     private final AccountRepositoryImpl accountRepositoryImpl;
     
-    public TransactionService(String filePath) {
-        this.accountRepositoryImpl = new AccountRepositoryImpl(new AccountDaoImpl(this.getAccounts(filePath)));
+    public TransactionService(String filePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException {
+        this.accountRepositoryImpl = new AccountRepositoryImpl(new AccountDaoImpl(filePath));
     }
     
     public List<Account> readAllFromCSV(String filePath) {
@@ -48,32 +46,7 @@ public class TransactionService {
 
         return listAccounts;
     }
-    
-    public List<Account> getDefaultAccounts() {
-        List<Account> listAccounts = new ArrayList<>();
-        Account default1 = new Account("112233", "012108", "John Doe", new BigDecimal(100), new ArrayList<>());
-        Account default2 = new Account("112244", "932012", "Jane Doe", new BigDecimal(30), new ArrayList<>());
-        listAccounts.add(default1);
-        listAccounts.add(default2);
-        
-        return listAccounts;
-    }
-    
-    public List<Account> getAccounts(String filePath) {
-        List<Account> listAccontsDefault = this.getDefaultAccounts();
-        final List<Account> listAccontsFromCSV = this.readAllFromCSV(filePath); 
-           
-        List<Account> listAccount = listAccontsDefault.stream().filter(o -> listAccontsFromCSV.stream().anyMatch(csv -> !csv.getAccountName().equals(o.getAccountName())))
-                .collect(Collectors.toList());
-        
-        if (listAccount.isEmpty()) {
-            return listAccontsDefault;
-        } else {
-            return Stream.concat(listAccontsFromCSV.stream(), listAccount.stream()).collect(Collectors.toList());
-        }
-        
-    }
-    
+            
     public Account getAccount(String accountNum, String pin) {
         Account account = accountRepositoryImpl.get(accountNum, pin);
         if (account.getAccountNumber() == null){

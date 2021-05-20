@@ -14,11 +14,13 @@ import com.mycompany.atm.custom.exception.MinimumAmountException;
 import com.mycompany.atm.custom.exception.PinException;
 import java.math.BigDecimal;
 import java.util.regex.Pattern;
+import org.springframework.stereotype.Service;
 
 /**
  *
  * @author Achmad_ST761
  */
+@Service
 public class ValidationService {
 
     public ValidationService() {

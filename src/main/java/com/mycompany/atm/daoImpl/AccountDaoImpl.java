@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  *
@@ -24,7 +25,13 @@ import java.util.stream.Collectors;
  */
 public class AccountDaoImpl implements AccountDao {
     
+    private String filePath;
     private List<Account> listAccounts; 
+
+    public AccountDaoImpl(String filePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException {
+        this.filePath = filePath;
+        this.listAccounts = this.getAccounts(filePath);
+    }
 
     @Override
     public Account get(String accountNumber, String pin) {
@@ -43,9 +50,30 @@ public class AccountDaoImpl implements AccountDao {
             x.setBalance(newBalance);
         });
     }
-
-    public AccountDaoImpl(List<Account> accounts) {
-        this.listAccounts = accounts;
+    
+    public List<Account> getDefaultAccounts() {
+        List<Account> listAccounts = new ArrayList<>();
+        Account default1 = new Account("112233", "012108", "John Doe", new BigDecimal(100), new ArrayList<>());
+        Account default2 = new Account("112244", "932012", "Jane Doe", new BigDecimal(30), new ArrayList<>());
+        listAccounts.add(default1);
+        listAccounts.add(default2);
+        
+        return listAccounts;
+    }
+    
+     public List<Account> getAccounts(String filePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException {
+        List<Account> listAccontsDefault = this.getDefaultAccounts();
+        final List<Account> listAccontsFromCSV = this.readAllFromCSV(filePath); 
+           
+        List<Account> listAccount = listAccontsDefault.stream().filter(o -> listAccontsFromCSV.stream().anyMatch(csv -> !csv.getAccountName().equals(o.getAccountName())))
+                .collect(Collectors.toList());
+        
+        if (listAccount.isEmpty()) {
+            return listAccontsDefault;
+        } else {
+            return Stream.concat(listAccontsFromCSV.stream(), listAccount.stream()).collect(Collectors.toList());
+        }
+        
     }
        
     @Override
