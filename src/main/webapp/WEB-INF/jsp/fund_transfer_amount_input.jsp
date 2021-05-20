@@ -7,7 +7,7 @@
     $(document).ready(function() {
         $("#btnContinue").click(function () {
             var amount = $("#amount").val();
-            window.location.replace('/transfercp2?amount='+amount); 
+            window.location.replace('/fund_transfer_save_data?amount='+amount); 
         });
         $("#btnBack").click(function () {
             window.location.replace('/main'); 
@@ -32,7 +32,7 @@
                     Please enter transfer amount: 
                 </td>
                 <td>
-                    <input id="amount" type="text" />
+                    <input id="amount" type="number" />
                 </td>
             </tr>
         </table>

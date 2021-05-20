@@ -9,8 +9,8 @@ import com.mycompany.atm.custom.exception.AccountNumberDuplicatedException;
 import com.mycompany.atm.custom.exception.DuplicatedRecordException;
 import com.mycompany.atm.custom.exception.IncorrectCSVDataException;
 import com.mycompany.atm.domain.Account;
+import com.mycompany.atm.domain.Transaction;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -18,8 +18,14 @@ import java.util.List;
  * @author Achmad_ST761
  */
 public interface AccountRepository {
-    public Account get(String accountNumber, String pin) ;
-    public Account find(String accountNumber) ;
-    public void update(String accountNumber, BigDecimal newBalance);
+    public Account getAccount(String accountNumber, String pin) ;
+    public Account findAccount(String accountNumber) ;
+    public List<Account> findAllAccount();
+    public void updateAccount(Account account);
+    public void saveAccount(Account account);
+    public Transaction getTransaction(long id);
+    public List<Transaction> findAllTransaction(Account account);
+    public void updateTransaction(Transaction transaction);
+    public void saveTransaction(Transaction transaction);
     public List<Account> readAllFromCSV(String filePath) throws IOException, IncorrectCSVDataException,  AccountNumberDuplicatedException, DuplicatedRecordException;
 }

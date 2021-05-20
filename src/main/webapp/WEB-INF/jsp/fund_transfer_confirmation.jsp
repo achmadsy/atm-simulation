@@ -44,7 +44,7 @@
             </tr>
             <tr>
                 <td>
-                    Destination Account
+                    Reference Number
                 </td>
                 <td>
                     : ${newTransaction.getRefNumber()}

@@ -7,7 +7,7 @@
     $(document).ready(function() {
         $("#btnContinue").click(function () {
             var accNumber = $("#accountNumber").val();
-            window.location.replace('/transfercp1?destAccNumber='+accNumber); 
+            window.location.replace('/fund_transfer_save_data?destAccNumber='+accNumber); 
         });
         $("#btnBack").click(function () {
             window.location.replace('/main'); 

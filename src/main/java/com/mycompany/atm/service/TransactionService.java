@@ -10,36 +10,38 @@ import com.mycompany.atm.custom.exception.InsufficientBalanceException;
 import com.mycompany.atm.custom.exception.DuplicatedRecordException;
 import com.mycompany.atm.custom.exception.IncorrectCSVDataException;
 import com.mycompany.atm.custom.exception.InvalidAccountException;
-import com.mycompany.atm.daoImpl.AccountDaoImpl;
 import com.mycompany.atm.domain.Account;
 import com.mycompany.atm.domain.Transaction;
 import com.mycompany.atm.domain.TransactionFundTransfer;
 import com.mycompany.atm.domain.TransactionWithdraw;
-import com.mycompany.atm.repositoryImpl.AccountRepositoryImpl;
+import com.mycompany.atm.repository.AccountRepository;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  *
  * @author Achmad_ST761
  */
+@AllArgsConstructor
+@Service
 public class TransactionService {
-    private final AccountRepositoryImpl accountRepositoryImpl;
     
-    public TransactionService(String filePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException {
-        this.accountRepositoryImpl = new AccountRepositoryImpl(new AccountDaoImpl(filePath));
-    }
+    @Autowired
+    private final AccountRepository accountRepository;
     
     public List<Account> readAllFromCSV(String filePath) {
         
         List<Account> listAccounts = new ArrayList<>();
         
         try{    
-            listAccounts = accountRepositoryImpl.readAllFromCSV(filePath);
+            listAccounts = accountRepository.readAllFromCSV(filePath);
         } catch (AccountNumberDuplicatedException|DuplicatedRecordException|IOException|IncorrectCSVDataException e) {
             System.out.println("IMPORT INFO : "+e.getMessage());
         }
@@ -48,7 +50,7 @@ public class TransactionService {
     }
             
     public Account getAccount(String accountNum, String pin) {
-        Account account = accountRepositoryImpl.get(accountNum, pin);
+        Account account = accountRepository.getAccount(accountNum, pin);
         if (account.getAccountNumber() == null){
             throw new InvalidAccountException();
         }
@@ -56,7 +58,7 @@ public class TransactionService {
     }
     
     public void checkAccountAvailability(String accountNum) {
-        if (accountRepositoryImpl.find(accountNum) == null) {
+        if (accountRepository.findAccount(accountNum) == null) {
             throw new InvalidAccountException();
         }
     }
@@ -66,7 +68,7 @@ public class TransactionService {
             userAccount.updateUserAmount(amount);
             Transaction transaction = new TransactionWithdraw(LocalDateTime.now(), amount*-1);
             userAccount.addUserTransactionHistory(transaction);
-            accountRepositoryImpl.update(userAccount.getAccountNumber(), userAccount.getBalance());
+            accountRepository.updateAccount(userAccount);
         } else {
             throw new InsufficientBalanceException(userAccount);
         }
@@ -83,7 +85,7 @@ public class TransactionService {
 
     public void fundTransfer(Account userAccount, TransactionFundTransfer transaction) {
         if (isUserHaveBalance(new BigDecimal(transaction.getAmount()), userAccount.getBalance())) {
-            Account otherAccount = accountRepositoryImpl.find(transaction.getDestAccount());
+            Account otherAccount = accountRepository.findAccount(transaction.getDestAccount());
             TransactionFundTransfer otherAccountTransaction = new TransactionFundTransfer();
             Integer amount = transaction.getAmount();
             
@@ -108,7 +110,7 @@ public class TransactionService {
 
         transaction.setAmount(amount);
         account.addUserTransactionHistory(transaction);
-        accountRepositoryImpl.update(account.getAccountNumber(), account.getBalance());
+        accountRepository.updateAccount(account);
     }
     
 }

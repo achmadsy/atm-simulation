@@ -7,11 +7,19 @@ package com.mycompany.atm.domain;
 
 import com.mycompany.atm.enums.TransactionType;
 import java.time.LocalDateTime;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  *
  * @author Achmad_ST761
  */
+@Setter
+@Getter
+@Entity
+@DiscriminatorValue("FUND_TRANSFER")
 public class TransactionFundTransfer extends Transaction {
     
     private String destAccount;
@@ -25,26 +33,6 @@ public class TransactionFundTransfer extends Transaction {
 
     public TransactionFundTransfer() {
         super(TransactionType.FUND_TRANSFER.toString());
-    }
-    
-    
-
-    public String getDestAccount() {
-        return destAccount;
-    }
-
-    public void setDestAccount(String destAccount) {
-        this.destAccount = destAccount;
-    }
-
-    public String getRefNumber() {
-        return refNumber;
-    }
-
-    public void setRefNumber(String refNumber) {
-        this.refNumber = refNumber;
-    }
-    
-    
+    }   
     
 }

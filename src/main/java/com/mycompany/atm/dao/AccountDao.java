@@ -20,6 +20,8 @@ import java.util.List;
 public interface AccountDao {
     public Account get(String accountNumber, String pin);
     public Account find(String accountNumber);
-    public void update(String accountNumber, BigDecimal newBalance);
+    public List<Account> findAll();
+    public void update(Account account);
+    public void save(Account account);
     public List<Account> readAllFromCSV(String filePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException;
 }

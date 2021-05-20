@@ -18,37 +18,48 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import org.springframework.stereotype.Repository;
 
 /**
  *
  * @author Achmad_ST761
  */
+@Repository
 public class AccountDaoImpl implements AccountDao {
     
-    private String filePath;
-    private List<Account> listAccounts; 
-
-    public AccountDaoImpl(String filePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException {
-        this.filePath = filePath;
-        this.listAccounts = this.getAccounts(filePath);
-    }
-
+    @PersistenceContext
+    private EntityManager entityManager;
+    
     @Override
     public Account get(String accountNumber, String pin) {
-        return this.listAccounts.stream().filter(e -> e.getAccountNumber().equals(accountNumber)
-            && e.getPin().equals(pin)).findFirst().orElse(new Account());
+        return (Account) entityManager.createQuery("select a from Account a where a.accountNumber = :acc_number and a.pin = :pin")
+                .setParameter("acc_number", accountNumber)
+                .setParameter("pin", pin)
+                .getResultStream().findFirst().orElse(new Account());
     }
 
     @Override
     public Account find(String accountNumber) {
-        return this.listAccounts.stream().filter(e -> e.getAccountNumber().equals(accountNumber)).findFirst().orElse(new Account());
+        return (Account) entityManager.createQuery("select a from Account a where a.accountNumber = :acc_number")
+                .setParameter("acc_number", accountNumber)
+                .getResultStream().findFirst().orElse(new Account());
+    }
+        
+    @Override
+    public void update(Account account) {
+        entityManager.merge(account);
     }
     
     @Override
-    public void update(String accountNumber, BigDecimal newBalance) {
-        this.listAccounts.stream().filter(e -> e.getAccountNumber().equals(accountNumber)).forEach(x -> {
-            x.setBalance(newBalance);
-        });
+    public void save(Account account) {
+        entityManager.persist(account);
+    }
+    
+    @Override
+    public List<Account> findAll(){
+        return entityManager.createQuery("from Account a").getResultList();
     }
     
     public List<Account> getDefaultAccounts() {
@@ -61,28 +72,30 @@ public class AccountDaoImpl implements AccountDao {
         return listAccounts;
     }
     
-     public List<Account> getAccounts(String filePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException {
+    public void loadAccounts(String filePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException {
         List<Account> listAccontsDefault = this.getDefaultAccounts();
+        List<Account> dbAccounts = this.findAll();
         final List<Account> listAccontsFromCSV = this.readAllFromCSV(filePath); 
            
         List<Account> listAccount = listAccontsDefault.stream().filter(o -> listAccontsFromCSV.stream().anyMatch(csv -> !csv.getAccountName().equals(o.getAccountName())))
                 .collect(Collectors.toList());
+   
+        List<Account> accounts = Stream.concat(listAccontsFromCSV.stream(), listAccount.stream()).collect(Collectors.toList());
         
-        if (listAccount.isEmpty()) {
-            return listAccontsDefault;
-        } else {
-            return Stream.concat(listAccontsFromCSV.stream(), listAccount.stream()).collect(Collectors.toList());
-        }
+        accounts.stream().forEach(a -> {
+            if (!dbAccounts.contains(a))
+                this.save(a);
+        });
         
     }
        
     @Override
     public List<Account> readAllFromCSV(String filePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException {
         List<Account> accounts = new ArrayList<>();
-        Integer accountCounts = Files.readAllLines(Paths.get(filePath)).size()-1;
         
         if (!filePath.isEmpty()) {
-                    
+            
+            Integer accountCounts = Files.readAllLines(Paths.get(filePath)).size()-1;
             accounts = Files.readAllLines(Paths.get(filePath)).stream().skip(1).map(line -> {
                 Account account = null;
                 String[] data = line.split(",");

@@ -1,5 +1,13 @@
 package com.mycompany.atm.controller;
 
+import com.mycompany.atm.custom.exception.AccountNumberException;
+import com.mycompany.atm.custom.exception.InsufficientBalanceException;
+import com.mycompany.atm.custom.exception.InvalidAccountException;
+import com.mycompany.atm.custom.exception.InvalidAmountException;
+import com.mycompany.atm.custom.exception.InvalidReferenceException;
+import com.mycompany.atm.custom.exception.MaximumAmountException;
+import com.mycompany.atm.custom.exception.MinimumAmountException;
+import com.mycompany.atm.custom.exception.MultiplyAmountException;
 import com.mycompany.atm.domain.Account;
 import com.mycompany.atm.domain.TransactionFundTransfer;
 import com.mycompany.atm.service.TransactionService;
@@ -70,18 +78,21 @@ public class MenuController {
     @PostMapping(value = "/login")
     public ModelAndView doLogin(@ModelAttribute("account") @Validated Account account,
             BindingResult bindingResult, ModelMap model, RedirectAttributes ra, HttpSession httpSession) {
+        Account accountRetrieved;
+        
         if (bindingResult.hasErrors()) {
             ra.addFlashAttribute("org.springframework.validation.BindingResult.account", bindingResult);
             ra.addFlashAttribute("account", account);
             return new ModelAndView("redirect:welcome");
         }
        
-//        Account accountRetrieved = transactionService.checkRecords(account.getAccountNumber(), account.getPin());
-//        if (accountRetrieved == null) {
-//            ra.addFlashAttribute("accountError", "Invalid Account Number/PIN");
-//            return new ModelAndView("redirect:welcome") ;
-//        }
-//        httpSession.setAttribute("account", accountRetrieved);
+        try {
+            accountRetrieved = transactionService.getAccount(account.getAccountNumber(), account.getPin());
+        } catch (InvalidAccountException e){
+            ra.addFlashAttribute("accountError", e.getMessage());
+            return new ModelAndView("redirect:welcome") ;
+        }
+        httpSession.setAttribute("account", accountRetrieved);
         return new ModelAndView ("redirect:main");
     }
     
@@ -123,28 +134,24 @@ public class MenuController {
                 ) {
             return "redirect:/welcome";
         } 
-        if (amount % 10 == 0) {
-//            if (new BigDecimal(amount).compareTo(new BigDecimal(1000)) == 1) {
-//                ra.addFlashAttribute("error", "Maximum amount to withdraw is $1000");
-//                return "redirect:/withdraw/other";
-//            } else {
-//                Account account = (Account) httpSession.getAttribute("account");
-//                if (transactionService.validationWithdraw(account, amount)){
-//                    transactionService.deductWithdrawAmount(account, amount);
-//                    httpSession.setAttribute("account", account);
-//                    model.addAttribute("account", account);
-//                    return "/withdraw_summary";
-//                } else {
-//                    ra.addFlashAttribute("error", "Insufficient balance $"+account.getBalance().toString());
-//                    Boolean redirect = (Boolean) httpSession.getAttribute("withdratOther");
-//                    return redirect ? "redirect:/withdraw/other" : "redirect:/withdraw";
-//                }
-//            }
-return null;
-        } else {
-            ra.addFlashAttribute("error", "Invalid Amount");
+        
+        Account account = (Account) httpSession.getAttribute("account");
+        try {
+            validationService.amountValidation(amount);
+            transactionService.withdraw(account, amount);
+            httpSession.setAttribute("account", account);
+            model.addAttribute("account", account);
+            return "/withdraw_summary";
+        } catch (InsufficientBalanceException e) {
+            ra.addFlashAttribute("error", "Insufficient balance $"+account.getBalance().toString());
+            Boolean redirect = (Boolean) httpSession.getAttribute("withdratOther");
+            return redirect ? "redirect:/withdraw/other" : "redirect:/withdraw";
+        } catch (MultiplyAmountException | MaximumAmountException | MinimumAmountException e) {
+            ra.addFlashAttribute("error", e.getMessage());
             return "redirect:/withdraw/other";
-        }
+        } 
+        
+        
     }
     
     @GetMapping(value = "/withdraw/other")
@@ -166,60 +173,45 @@ return null;
         Integer progress = (Integer) httpSession.getAttribute("transferProgress");
         if (progress == null) {
             model.addAttribute("destAccount", new Account());
-            return "transfer_src_1";
+            return "fund_transfer_account_input";
         } else if (progress == 2) {
-            return "transfer_src_2";
+            return "fund_transfer_amount_input";
         } else if (progress == 3) {
-//            String rand = transactionService.getRefNum();
-            TransactionFundTransfer fundTransfer = (TransactionFundTransfer) httpSession.getAttribute("newTransaction");
-//            fundTransfer.setRefNumber(rand);
-            httpSession.setAttribute("newTransaction", fundTransfer);
+            String rand = transactionService.getRandomRefNum();
             httpSession.setAttribute("transferProgress", 4);
-//            model.addAttribute("rand", rand);
-            return "transfer_src_3";
+            httpSession.setAttribute("fund_transfer_refNumber", rand);
+            model.addAttribute("rand", rand);
+            return "fund_transfer_ref_number";
         } else if (progress == 4) {
-            TransactionFundTransfer fundTransfer = (TransactionFundTransfer) httpSession.getAttribute("newTransaction");
-            model.addAttribute("newTransaction", fundTransfer);
-            return "transfer_src_4";
+            TransactionFundTransfer newTransaction = new TransactionFundTransfer();
+            newTransaction.setDestAccount((String) httpSession.getAttribute("fund_transfer_destAccNumber"));
+            newTransaction.setAmount((Integer) httpSession.getAttribute("fund_transfer_amount"));
+            newTransaction.setRefNumber((String)httpSession.getAttribute("fund_transfer_refNumber"));
+            httpSession.setAttribute("newTransaction", newTransaction);
+            model.addAttribute("newTransaction", newTransaction);
+            return "fund_transfer_confirmation";
         }
         return "/main";
     }
     
-    @GetMapping(value = "/transfercp1")
-    public String doTransferCp1(HttpSession httpSession, @ModelAttribute("destAccNumber") String destAccNumber,
+    @GetMapping(value = "/fund_transfer_save_data")
+    public String transferDestAccountCheckpoint(HttpSession httpSession, @ModelAttribute("destAccNumber") String destAccNumber, @ModelAttribute("amount") String amount,
             Model model, RedirectAttributes ra){
         if (httpSession.getAttribute("account") == null
                 ) {
             return "redirect:/welcome";
         } 
-       
-//        Account destAccountRetrieved = transactionService.checkRecords(destAccNumber);
-//        
-//        TransactionFundTransfer newTransaction = new TransactionFundTransfer();
-//        newTransaction.setAccount((Account) httpSession.getAttribute("account"));
-//        newTransaction.setDestAccount(destAccNumber);
-//        httpSession.setAttribute("destAccount", destAccountRetrieved);
-//        httpSession.setAttribute("newTransaction", newTransaction);
-//        httpSession.setAttribute("transferProgress", 2);
-        return "redirect:/transfer";
-    }
-    
-    @GetMapping(value = "/transfercp2")
-    public String doTransferCp2(@ModelAttribute("amount") String amount, HttpSession httpSession, Model model){
-        if (httpSession.getAttribute("account") == null
-                ) {
-            return "redirect:/welcome";
-        } 
-        if (httpSession.getAttribute("newTransaction") == null) {
-            return "redirect:/main";
+        if (!destAccNumber.equals("")) {
+            httpSession.setAttribute("fund_transfer_destAccNumber", destAccNumber);
+            httpSession.setAttribute("transferProgress", 2);
         }
-        TransactionFundTransfer fundTransfer = (TransactionFundTransfer) httpSession.getAttribute("newTransaction");
-//        fundTransfer.setAmount(amount);
-        httpSession.setAttribute("newTransaction", fundTransfer);
-        httpSession.setAttribute("transferProgress", 3);
+        if (!amount.equals("")) {
+            httpSession.setAttribute("fund_transfer_amount", amount);
+            httpSession.setAttribute("transferProgress", 3);
+        }
         return "redirect:/transfer";
     }
-    
+        
     @GetMapping(value = "/transfer/do")
     public String doTransfer(HttpSession httpSession, Model model, RedirectAttributes ra){
         
@@ -230,43 +222,19 @@ return null;
         
         TransactionFundTransfer fundTransfer = (TransactionFundTransfer) httpSession.getAttribute("newTransaction");
         Account account = (Account) httpSession.getAttribute("account");
-//        Account destAccountRetrieved = transactionService.checkRecords(fundTransfer.getDestAccount());
-        BigDecimal transferAmount = new BigDecimal(0);
-//        if (!validationService.genericValidation(fundTransfer.getDestAccount())
-//                || destAccountRetrieved == null) {
-//            ra.addFlashAttribute("error","Invalid Account");
-//            return "redirect:/transfer";
-//        }
-//        if (!validationService.isNumeric(fundTransfer.getAmount())) {
-//            ra.addFlashAttribute("error","Invalid Amount");
-//            return "redirect:/transfer";
-//        } else {
-//            transferAmount = new BigDecimal(fundTransfer.getAmount());
-//        }
-        if (transferAmount.compareTo(new BigDecimal(1000)) == 1){
-            ra.addFlashAttribute("error","Maximum amount to withdraw is $1000");
-            return "redirect:/transfer";
-        }
-        if (transferAmount.compareTo(new BigDecimal(1)) == -1) {
-            ra.addFlashAttribute("error","Minimum amount to withdraw is $1");
-            return "redirect:/transfer";
-        }
-        if (fundTransfer.getRefNumber().isEmpty()) {
-            ra.addFlashAttribute("error","Ref Number is Empty");
-            return "redirect:/transfer";
-        }
-//        if (!fundTransfer.getRefNumber().isEmpty()
-//                && !validationService.genericValidation(fundTransfer.getRefNumber())) {
-//            ra.addFlashAttribute("error","Invalid Reference Number");
-//            return "redirect:/transfer";
-//        }
-        if (account.getBalance().compareTo(transferAmount) == -1) {
-            ra.addFlashAttribute("error","Insufficient balance for $"+transferAmount.toString());
-            return "redirect:/transfer";
-        }
         
-//        transactionService.fundTransfer(account, fundTransfer, destAccountRetrieved);
-        httpSession.setAttribute("account", account);
+        try {
+            validationService.credentialsValidation("AccountNumber", fundTransfer.getDestAccount());
+            transactionService.checkAccountAvailability(fundTransfer.getDestAccount());
+            validationService.amountValidation(fundTransfer.getAmount());
+            validationService.checkRefNumber(fundTransfer.getRefNumber());
+            transactionService.fundTransfer(account, fundTransfer);
+            httpSession.setAttribute("account", account);
+        } catch (AccountNumberException | InvalidAccountException | InvalidAmountException | MultiplyAmountException | MaximumAmountException | MinimumAmountException |
+                InvalidReferenceException | InsufficientBalanceException e) {
+            ra.addFlashAttribute("error", e.getMessage());
+            return "redirect:/transfer";
+        }       
         
         return "redirect:/transfer/summary";
     }
@@ -274,7 +242,7 @@ return null;
     @GetMapping(value = "/transfer/summary")
     public String transferSummaryPage(HttpSession httpSession, Model model){
         TransactionFundTransfer fundTransfer = (TransactionFundTransfer) httpSession.getAttribute("newTransaction");
-//        fundTransfer.setAmount(fundTransfer.getAmount().substring(1, fundTransfer.getAmount().length()));
+        fundTransfer.setAmount(fundTransfer.getAmount());
         model.addAttribute("transaction", fundTransfer);
         return "transfer_summary";
     }

@@ -25,7 +25,7 @@ import java.util.Scanner;
  *
  * @author Achmad_ST761
  */
-public class MenuService {
+public class MenuCLIService {
     
     private final Scanner scanner = new Scanner(System.in);
     private final ValidationService validationService = new ValidationService();
@@ -34,7 +34,7 @@ public class MenuService {
     private Transaction userLastTransaction;
     private String option;
     
-    public MenuService(TransactionService transactionService) {
+    public MenuCLIService(TransactionService transactionService) {
         this.transactionService = transactionService;
     }
 
