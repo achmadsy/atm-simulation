@@ -30,7 +30,7 @@
             </tr>
             <tr>
                 <td>Withdraw :</td>
-                <td>\$${account.getLatestTransactionHistory().getAmount()}</td>
+                <td>\$${account.getLatestTransactionHistory().getAmount() < 0 ? -account.getLatestTransactionHistory().getAmount() : account.getLatestTransactionHistory().getAmount()}</td>
             </tr>
             <tr>
                 <td>Balance :</td>

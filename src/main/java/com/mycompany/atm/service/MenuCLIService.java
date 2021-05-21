@@ -19,6 +19,7 @@ import com.mycompany.atm.domain.Transaction;
 import com.mycompany.atm.domain.TransactionFundTransfer;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Scanner;
 
 /**
@@ -156,7 +157,7 @@ public class MenuCLIService {
         userLastTransaction = userAccount.getLatestTransactionHistory();
         System.out.println("Summary");
         System.out.println("Date : "+userLastTransaction.getFormattedDate());
-        System.out.println("Withdraw $: "+userLastTransaction.getAmount().toString());
+        System.out.println("Withdraw $: "+Math.abs(userLastTransaction.getAmount()));
         System.out.println("Balance $: "+userAccount.getBalance().toString());
         System.out.println("");
         System.out.println("1. Transaction");
@@ -206,11 +207,11 @@ public class MenuCLIService {
     }
 
     private void showHistoryScreen() {
+        userAccount = transactionService.refreshAccount(userAccount);
         System.out.println("User Transaction History");
         System.out.println("Type                    Amount");
-        for (int i=0; i<10; i++) {
-            System.out.println(userAccount.getTransactionHistory().get(i).getTransactionType()+"                 "+userAccount.getTransactionHistory().get(i).getAmount());
-        }
+        transactionService.getLast10Transaction(userAccount, LocalDate.now()).stream()
+                .forEach(e -> System.out.println(e.getTransactionType()+"                 "+e.getAmount()));
         System.out.println("Press enter to back to the main menu");
         scanner.nextLine();
         clearScreen();
@@ -266,7 +267,7 @@ public class MenuCLIService {
         BigDecimal lastTransactionAmount = new BigDecimal(0);
         System.out.println("Transfer Confirmation");
         System.out.println("Destination Account : "+fundTransfer.getDestAccount());
-        System.out.println("Transfer Amount     : $"+fundTransfer.getAmount());
+        System.out.println("Transfer Amount     : $"+Math.abs(fundTransfer.getAmount()));
         System.out.println("Reference Number    : "+fundTransfer.getRefNumber());
         System.out.println("");
         System.out.println("1. Confirm Trx");
@@ -309,7 +310,7 @@ public class MenuCLIService {
         TransactionFundTransfer fundTransfer = (TransactionFundTransfer) userAccount.getLatestTransactionHistory();
         System.out.println("Fund Transfer Summary");
         System.out.println("Destination Account : "+fundTransfer.getDestAccount());
-        System.out.println("Transfer Amount     : $"+fundTransfer.getAmount());
+        System.out.println("Transfer Amount     : $"+Math.abs(fundTransfer.getAmount()));
         System.out.println("Reference Number    : "+fundTransfer.getRefNumber());
         System.out.println("Balance             : "+userAccount.getBalance());  
         System.out.println("");

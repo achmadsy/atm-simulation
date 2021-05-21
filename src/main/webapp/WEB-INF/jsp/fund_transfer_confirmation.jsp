@@ -39,7 +39,7 @@
                     Transfer Amount
                 </td>
                 <td>
-                    : \$${newTransaction.getAmount()}
+                    : \$${newTransaction.getAmount() < 0 ? -newTransaction.getAmount() : newTransaction.getAmount()}
                 </td>
             </tr>
             <tr>

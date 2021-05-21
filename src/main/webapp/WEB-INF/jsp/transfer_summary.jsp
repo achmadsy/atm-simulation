@@ -30,7 +30,7 @@
             </tr>
             <tr>
                 <td>Transfer Amount</td>
-                <td>: \$${transaction.getAmount()}</td>
+                <td>: \$${transaction.getAmount() < 0 ? -transaction.getAmount() : transaction.getAmount()}</td>
             </tr>
             <tr>
                 <td>Reference Number</td>

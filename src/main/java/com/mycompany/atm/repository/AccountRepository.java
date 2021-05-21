@@ -9,7 +9,6 @@ import com.mycompany.atm.custom.exception.AccountNumberDuplicatedException;
 import com.mycompany.atm.custom.exception.DuplicatedRecordException;
 import com.mycompany.atm.custom.exception.IncorrectCSVDataException;
 import com.mycompany.atm.domain.Account;
-import com.mycompany.atm.domain.Transaction;
 import java.io.IOException;
 import java.util.List;
 

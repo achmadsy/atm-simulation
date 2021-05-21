@@ -17,10 +17,11 @@ import com.mycompany.atm.domain.TransactionWithdraw;
 import com.mycompany.atm.repository.AccountRepository;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,7 +46,7 @@ public class TransactionService {
     }
     
     public void checkAccountAvailability(String accountNum) {
-        if (accountRepository.findAccount(accountNum) == null) {
+        if (accountRepository.findAccount(accountNum).getAccountNumber() == null) {
             throw new InvalidAccountException();
         }
     }
@@ -106,6 +107,11 @@ public class TransactionService {
 
     public void loadAccounts(String csvFilePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException {
         accountRepository.loadAccounts(csvFilePath);
+    }
+    
+    public List<Transaction> getLast10Transaction(Account account, LocalDate compareDate) {
+        List<Transaction> transHistory = this.refreshAccount(account).getTransactionHistory();
+        return transHistory.stream().filter(e ->  e.getTransactionDate().toLocalDate().equals(compareDate)).sorted((t1, t2) -> Long.compare(t2.getId(), t1.getId())).limit(10).collect(Collectors.toList());
     }
     
 }
