@@ -23,9 +23,5 @@ public interface AccountRepository {
     public List<Account> findAllAccount();
     public void updateAccount(Account account);
     public void saveAccount(Account account);
-    public Transaction getTransaction(long id);
-    public List<Transaction> findAllTransaction(Account account);
-    public void updateTransaction(Transaction transaction);
-    public void saveTransaction(Transaction transaction);
-    public List<Account> readAllFromCSV(String filePath) throws IOException, IncorrectCSVDataException,  AccountNumberDuplicatedException, DuplicatedRecordException;
+    public void loadAccounts(String csvFilePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException;
 }

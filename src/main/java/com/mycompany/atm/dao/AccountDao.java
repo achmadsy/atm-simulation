@@ -23,5 +23,5 @@ public interface AccountDao {
     public List<Account> findAll();
     public void update(Account account);
     public void save(Account account);
-    public List<Account> readAllFromCSV(String filePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException;
+    public void loadAccounts(String csvFilePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException;
 }

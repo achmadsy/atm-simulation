@@ -16,6 +16,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
@@ -72,15 +76,14 @@ public class AccountDaoImpl implements AccountDao {
         return listAccounts;
     }
     
+    @Override
     public void loadAccounts(String filePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException {
-        List<Account> listAccontsDefault = this.getDefaultAccounts();
         List<Account> dbAccounts = this.findAll();
-        final List<Account> listAccontsFromCSV = this.readAllFromCSV(filePath); 
-           
-        List<Account> listAccount = listAccontsDefault.stream().filter(o -> listAccontsFromCSV.stream().anyMatch(csv -> !csv.getAccountName().equals(o.getAccountName())))
-                .collect(Collectors.toList());
-   
-        List<Account> accounts = Stream.concat(listAccontsFromCSV.stream(), listAccount.stream()).collect(Collectors.toList());
+        final List<Account> listAccountsFromCSV = this.readAllFromCSV(filePath); 
+        
+        List<Account> listAccount = dbAccounts.size() > 0 ? dbAccounts : this.getDefaultAccounts();
+              
+        List<Account> accounts = Stream.concat(listAccountsFromCSV.stream(), listAccount.stream()).filter(distinctByKey(e -> e.getAccountName())).collect(Collectors.toList());
         
         accounts.stream().forEach(a -> {
             if (!dbAccounts.contains(a))
@@ -88,8 +91,12 @@ public class AccountDaoImpl implements AccountDao {
         });
         
     }
+    
+    public <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
+        Map<Object, Boolean> map = new ConcurrentHashMap<>();
+        return t -> map.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+    }
        
-    @Override
     public List<Account> readAllFromCSV(String filePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException {
         List<Account> accounts = new ArrayList<>();
         

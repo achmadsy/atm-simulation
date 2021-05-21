@@ -208,9 +208,9 @@ public class MenuCLIService {
     private void showHistoryScreen() {
         System.out.println("User Transaction History");
         System.out.println("Type                    Amount");
-        userAccount.getTransactionHistory().stream().forEach(e -> {
-            System.out.println(e.getTransactionType()+"                 "+e.getAmount());
-        });
+        for (int i=0; i<10; i++) {
+            System.out.println(userAccount.getTransactionHistory().get(i).getTransactionType()+"                 "+userAccount.getTransactionHistory().get(i).getAmount());
+        }
         System.out.println("Press enter to back to the main menu");
         scanner.nextLine();
         clearScreen();

@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -71,6 +72,31 @@ public class Account implements Serializable{
     
     public Transaction getLatestTransactionHistory(){
         return this.transactionHistory.stream().filter(e -> e.getAmount() < 0).reduce((first, second) -> second).get();
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 83 * hash + Objects.hashCode(this.accountName);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Account other = (Account) obj;
+        if (!Objects.equals(this.accountName, other.accountName)) {
+            return false;
+        }
+        return true;
     }
     
 }

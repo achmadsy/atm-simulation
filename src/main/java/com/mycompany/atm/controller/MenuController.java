@@ -9,11 +9,17 @@ import com.mycompany.atm.custom.exception.MaximumAmountException;
 import com.mycompany.atm.custom.exception.MinimumAmountException;
 import com.mycompany.atm.custom.exception.MultiplyAmountException;
 import com.mycompany.atm.domain.Account;
+import com.mycompany.atm.domain.Transaction;
 import com.mycompany.atm.domain.TransactionFundTransfer;
 import com.mycompany.atm.service.TransactionService;
 import com.mycompany.atm.service.ValidationService;
 import com.mycompany.atm.validator.AccountFormValidator;
-import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -185,7 +191,7 @@ public class MenuController {
         } else if (progress == 4) {
             TransactionFundTransfer newTransaction = new TransactionFundTransfer();
             newTransaction.setDestAccount((String) httpSession.getAttribute("fund_transfer_destAccNumber"));
-            newTransaction.setAmount((Integer) httpSession.getAttribute("fund_transfer_amount"));
+            newTransaction.setAmount(Integer.valueOf((String) httpSession.getAttribute("fund_transfer_amount")));
             newTransaction.setRefNumber((String)httpSession.getAttribute("fund_transfer_refNumber"));
             httpSession.setAttribute("newTransaction", newTransaction);
             model.addAttribute("newTransaction", newTransaction);
@@ -229,7 +235,7 @@ public class MenuController {
             validationService.amountValidation(fundTransfer.getAmount());
             validationService.checkRefNumber(fundTransfer.getRefNumber());
             transactionService.fundTransfer(account, fundTransfer);
-            httpSession.setAttribute("account", account);
+            httpSession.setAttribute("account", transactionService.refreshAccount(account));
         } catch (AccountNumberException | InvalidAccountException | InvalidAmountException | MultiplyAmountException | MaximumAmountException | MinimumAmountException |
                 InvalidReferenceException | InsufficientBalanceException e) {
             ra.addFlashAttribute("error", e.getMessage());
@@ -241,11 +247,31 @@ public class MenuController {
     
     @GetMapping(value = "/transfer/summary")
     public String transferSummaryPage(HttpSession httpSession, Model model){
+        
+        if (httpSession.getAttribute("newTransaction") == null
+                ) {
+            return "redirect:/welcome";
+        } 
+        
         TransactionFundTransfer fundTransfer = (TransactionFundTransfer) httpSession.getAttribute("newTransaction");
         fundTransfer.setAmount(fundTransfer.getAmount());
         model.addAttribute("transaction", fundTransfer);
         return "transfer_summary";
     }
-  
+    
+    @GetMapping(value = "/history")
+    public String historyPage(HttpSession httpSession, Model model, @ModelAttribute("filterDate") String filterDate){
+        
+        if (httpSession.getAttribute("account") == null
+                ) {
+            return "redirect:/welcome";
+        } 
+        final LocalDate compareDate = !filterDate.equals("") ? LocalDate.parse(filterDate) : LocalDate.now();
+        List<Transaction> transHistory = ((Account) httpSession.getAttribute("account")).getTransactionHistory();
+        transHistory = transHistory.stream().filter(e ->  e.getTransactionDate().toLocalDate().equals(compareDate)).limit(10).sorted((t1, t2) -> Long.compare(t2.getId(), t1.getId())).collect(Collectors.toList());
+        model.addAttribute("transHistory", transHistory);
+        model.addAttribute("filterDate", compareDate.toString());
+        return "trans_history";
+    }
      
 }

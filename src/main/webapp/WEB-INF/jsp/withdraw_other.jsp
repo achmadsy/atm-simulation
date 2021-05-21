@@ -32,7 +32,7 @@
                     Enter amount (multiples of 10) to withdraw: 
                 </td>
                 <td>
-                    <input type="number" id="amount"/>
+                    <input oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);" type = "number" maxlength="7" id="amount">
                 </td>
             </tr>
         </table>

@@ -35,20 +35,7 @@ public class TransactionService {
     
     @Autowired
     private final AccountRepository accountRepository;
-    
-    public List<Account> readAllFromCSV(String filePath) {
-        
-        List<Account> listAccounts = new ArrayList<>();
-        
-        try{    
-            listAccounts = accountRepository.readAllFromCSV(filePath);
-        } catch (AccountNumberDuplicatedException|DuplicatedRecordException|IOException|IncorrectCSVDataException e) {
-            System.out.println("IMPORT INFO : "+e.getMessage());
-        }
-
-        return listAccounts;
-    }
-            
+             
     public Account getAccount(String accountNum, String pin) {
         Account account = accountRepository.getAccount(accountNum, pin);
         if (account.getAccountNumber() == null){
@@ -67,6 +54,7 @@ public class TransactionService {
         if (isUserHaveBalance(new BigDecimal(amount), userAccount.getBalance())) {
             userAccount.updateUserAmount(amount);
             Transaction transaction = new TransactionWithdraw(LocalDateTime.now(), amount*-1);
+            transaction.setAccount(userAccount);
             userAccount.addUserTransactionHistory(transaction);
             accountRepository.updateAccount(userAccount);
         } else {
@@ -85,13 +73,11 @@ public class TransactionService {
 
     public void fundTransfer(Account userAccount, TransactionFundTransfer transaction) {
         if (isUserHaveBalance(new BigDecimal(transaction.getAmount()), userAccount.getBalance())) {
-            Account otherAccount = accountRepository.findAccount(transaction.getDestAccount());
-            TransactionFundTransfer otherAccountTransaction = new TransactionFundTransfer();
             Integer amount = transaction.getAmount();
-            
-            transaction.setTransactionDate(LocalDateTime.now());
             updateAccount(userAccount, transaction, amount*-1);
             
+            Account otherAccount = accountRepository.findAccount(transaction.getDestAccount());
+            TransactionFundTransfer otherAccountTransaction = new TransactionFundTransfer();
             otherAccountTransaction.setRefNumber(transaction.getRefNumber());
             otherAccountTransaction.setTransactionDate(transaction.getTransactionDate());
             updateAccount(otherAccount, otherAccountTransaction, amount);
@@ -107,10 +93,19 @@ public class TransactionService {
     
     private void updateAccount(Account account, TransactionFundTransfer transaction, Integer amount) {
         account.setBalance(account.getBalance().add(new BigDecimal(amount)));
-
+        transaction.setTransactionDate(LocalDateTime.now());
         transaction.setAmount(amount);
+        transaction.setAccount(account);
         account.addUserTransactionHistory(transaction);
         accountRepository.updateAccount(account);
+    }
+    
+    public Account refreshAccount(Account account){
+        return accountRepository.findAccount(account.getAccountNumber());
+    }
+
+    public void loadAccounts(String csvFilePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException {
+        accountRepository.loadAccounts(csvFilePath);
     }
     
 }

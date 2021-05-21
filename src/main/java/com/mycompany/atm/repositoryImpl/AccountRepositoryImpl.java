@@ -11,7 +11,6 @@ import com.mycompany.atm.custom.exception.IncorrectCSVDataException;
 import com.mycompany.atm.dao.AccountDao;
 import com.mycompany.atm.dao.TransactionDao;
 import com.mycompany.atm.domain.Account;
-import com.mycompany.atm.domain.Transaction;
 import com.mycompany.atm.repository.AccountRepository;
 import java.io.IOException;
 import java.util.List;
@@ -74,30 +73,10 @@ public class AccountRepositoryImpl implements AccountRepository{
     public void saveAccount(Account account) {
         accountDao.save(account);
     }
-
+    
     @Override
-    public Transaction getTransaction(long id) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List<Transaction> findAllTransaction(Account account) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void updateTransaction(Transaction transaction) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void saveTransaction(Transaction transaction) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public List<Account> readAllFromCSV(String filePath) throws IOException, IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void loadAccounts(String csvFilePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException {
+        accountDao.loadAccounts(csvFilePath);
     }
  
 }

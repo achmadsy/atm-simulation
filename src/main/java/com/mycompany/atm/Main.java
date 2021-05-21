@@ -43,20 +43,19 @@ public class Main implements ApplicationRunner {
     
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
     
-    @Value("${filePath}")
-    private static String filePath = "";
+    @Value("${file.path:}")
+    private String filePath = "";
+    
+    private static String csvFilePath = "";
         
     public static void main(String[] args) {
         try {
             ApplicationContext context = SpringApplication.run(Main.class, args);    
-            
-            AccountDaoImpl accountDaoImpl = context.getBean(AccountDaoImpl.class);
-            accountDaoImpl.loadAccounts(filePath);
-            
+            TransactionService transactionService = context.getBean(TransactionService.class);
+            transactionService.loadAccounts(csvFilePath);
             MenuCLIService menuService = new MenuCLIService(context.getBean(TransactionService.class));
             menuService.clearScreen();
-            menuService.showWelcomeScreen();
-            
+            menuService.showWelcomeScreen();        
         } catch (NoSuchElementException e) {
             System.exit(0);
         } catch (AccountNumberDuplicatedException | DuplicatedRecordException | IOException | IncorrectCSVDataException e) {
@@ -67,5 +66,6 @@ public class Main implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) throws Exception {
         LOG.info("CSV filepath: "+filePath);
+        Main.csvFilePath = this.filePath;
     }
 }
