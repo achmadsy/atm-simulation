@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,6 +26,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -45,6 +46,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @TestPropertySource(
   locations = "classpath:application-test.properties")
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@Transactional
 public class ATMTest {
     
     @Autowired
@@ -53,13 +55,13 @@ public class ATMTest {
     @Autowired
     TransactionService transactionService;
     
-    static Account newAccount, newAccount2;
+    Account newAccount, newAccount2;
     
     @Rule
     public ExpectedException exceptionRule = ExpectedException.none();
 
-    @BeforeClass
-    public static void setUp() {
+    @Before
+    public void setUp() {
         newAccount = new Account();
         newAccount.setAccountName("test");
         newAccount.setBalance(new BigDecimal(10));
@@ -72,11 +74,12 @@ public class ATMTest {
         newAccount2.setPin("123456");
         newAccount2.setAccountNumber("112234");
         newAccount2.setTransactionHistory(new ArrayList<>());
+        accountRepository.saveAccount(newAccount);
+        accountRepository.saveAccount(newAccount2);
     }
     
     @Test
     public void test1_isAccountAvailable() {
-        accountRepository.saveAccount(newAccount);
         Account retrievedAccount = accountRepository.findAccount(newAccount.getAccountNumber());
         assertEquals(retrievedAccount.getAccountNumber(), newAccount.getAccountNumber());
     }
@@ -84,7 +87,7 @@ public class ATMTest {
     @Test
     public void test2_isAccountAvailableFromListAccount() { 
         List<Account> retrievedAccounts = accountRepository.findAllAccount();
-        assertEquals(1 , retrievedAccounts.size());
+        assertEquals(2 , retrievedAccounts.size());
         assertEquals(retrievedAccounts.get(0).getAccountNumber(), newAccount.getAccountNumber());
     }
     
@@ -103,7 +106,6 @@ public class ATMTest {
     
     @Test
     public void test5_fundTransfer() {
-        accountRepository.saveAccount(newAccount2);
         newAccount.setBalance(new BigDecimal(10));
         int beforeAmountAcc1 = newAccount.getBalance().intValue();
         int beforeAmountAcc2 = newAccount2.getBalance().intValue();

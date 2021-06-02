@@ -5,9 +5,6 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
     $(document).ready(function() {
-        $("#btnContinue").click(function () {
-            window.location.replace('/transfer/do'); 
-        });
         $("#btnBack").click(function () {
             window.location.replace('/main'); 
         });
@@ -52,9 +49,9 @@
             </tr>
         </table>
         </br>
-        <button id="btnContinue" type="button" class="btn btn-default btn-lg active">
-            Confirm Trx
-        </button> 
+        <form action = "/transfer/do" method = "POST">
+            <input value="Confirm Trx" type="submit" class="btn btn-default btn-lg active"/>
+        </form>
         </br>
         <button id="btnBack" type="button" class="btn btn-default btn-lg active">
             Cancel Trx

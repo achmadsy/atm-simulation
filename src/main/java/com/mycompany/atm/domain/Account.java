@@ -71,7 +71,7 @@ public class Account implements Serializable{
     }
     
     public Transaction getLatestTransactionHistory(){
-        return this.transactionHistory.stream().filter(e -> e.getAmount() < 0).reduce((first, second) -> second).get();
+        return this.transactionHistory.size() > 0 ? this.transactionHistory.stream().filter(e -> e.getAmount() < 0).reduce((first, second) -> second).get() : null;
     }
 
     @Override

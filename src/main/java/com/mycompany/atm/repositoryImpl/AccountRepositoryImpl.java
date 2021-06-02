@@ -11,8 +11,10 @@ import com.mycompany.atm.custom.exception.IncorrectCSVDataException;
 import com.mycompany.atm.dao.AccountDao;
 import com.mycompany.atm.dao.TransactionDao;
 import com.mycompany.atm.domain.Account;
+import com.mycompany.atm.domain.Transaction;
 import com.mycompany.atm.repository.AccountRepository;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -77,6 +79,11 @@ public class AccountRepositoryImpl implements AccountRepository{
     @Override
     public void loadAccounts(String csvFilePath) throws IncorrectCSVDataException, AccountNumberDuplicatedException, DuplicatedRecordException, IOException {
         accountDao.loadAccounts(csvFilePath);
+    }
+
+    @Override
+    public List<Transaction> findLast10TransactionHistory(Account account, LocalDate date) {
+        return transactionDao.findLast10TransactionHistory(account, date);
     }
  
 }

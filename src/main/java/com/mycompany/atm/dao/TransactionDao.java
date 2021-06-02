@@ -7,6 +7,7 @@ package com.mycompany.atm.dao;
 
 import com.mycompany.atm.domain.Account;
 import com.mycompany.atm.domain.Transaction;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -19,4 +20,5 @@ public interface TransactionDao {
     public void save(Transaction transaction);
     public List<Transaction> findAll(Account account);
     public void update(Transaction transaction);
+    public List<Transaction> findLast10TransactionHistory(Account account, LocalDate date);
 }

@@ -6,10 +6,16 @@
 package com.mycompany.atm.service;
 
 import com.mycompany.atm.custom.exception.AccountNumberDuplicatedException;
+import com.mycompany.atm.custom.exception.AccountNumberException;
 import com.mycompany.atm.custom.exception.InsufficientBalanceException;
 import com.mycompany.atm.custom.exception.DuplicatedRecordException;
 import com.mycompany.atm.custom.exception.IncorrectCSVDataException;
 import com.mycompany.atm.custom.exception.InvalidAccountException;
+import com.mycompany.atm.custom.exception.InvalidReferenceException;
+import com.mycompany.atm.custom.exception.MaximumAmountException;
+import com.mycompany.atm.custom.exception.MinimumAmountException;
+import com.mycompany.atm.custom.exception.MultiplyAmountException;
+import com.mycompany.atm.custom.exception.PinException;
 import com.mycompany.atm.domain.Account;
 import com.mycompany.atm.domain.Transaction;
 import com.mycompany.atm.domain.TransactionFundTransfer;
@@ -21,7 +27,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
+import javax.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,6 +42,9 @@ public class TransactionService {
     
     @Autowired
     private final AccountRepository accountRepository;
+    
+    @Autowired
+    private final ValidationService validationService;
              
     public Account getAccount(String accountNum, String pin) {
         Account account = accountRepository.getAccount(accountNum, pin);
@@ -51,7 +60,9 @@ public class TransactionService {
         }
     }
     
-    public void withdraw(Account userAccount, int amount) {
+    public Account withdraw(Account userAccount, int amount) {
+        userAccount = this.refreshAccount(userAccount);
+        validationService.amountValidation(amount);
         if (isUserHaveBalance(new BigDecimal(amount), userAccount.getBalance())) {
             userAccount.updateUserAmount(amount);
             Transaction transaction = new TransactionWithdraw(LocalDateTime.now(), amount*-1);
@@ -61,6 +72,8 @@ public class TransactionService {
         } else {
             throw new InsufficientBalanceException(userAccount);
         }
+        
+        return userAccount;
     }
     
     public String getRandomRefNum() {
@@ -72,7 +85,14 @@ public class TransactionService {
         return temp;
     }
 
-    public void fundTransfer(Account userAccount, TransactionFundTransfer transaction) {
+    public Account fundTransfer(Account userAccount, TransactionFundTransfer transaction) throws InsufficientBalanceException, AccountNumberException, PinException, InvalidAccountException, InvalidReferenceException, MultiplyAmountException, MaximumAmountException, MinimumAmountException {
+        
+        userAccount = this.refreshAccount(userAccount);
+        validationService.credentialsValidation("AccountNumber", transaction.getDestAccount());
+        this.checkAccountAvailability(transaction.getDestAccount());
+        validationService.amountValidation(transaction.getAmount());
+        validationService.checkRefNumber(transaction.getRefNumber());
+        
         if (isUserHaveBalance(new BigDecimal(transaction.getAmount()), userAccount.getBalance())) {
             Integer amount = transaction.getAmount();
             updateAccount(userAccount, transaction, amount*-1);
@@ -86,6 +106,8 @@ public class TransactionService {
         } else {
             throw new InsufficientBalanceException(userAccount);
         }
+        
+        return userAccount;
     }
 
     private boolean isUserHaveBalance(BigDecimal amount, BigDecimal userBalance) {
@@ -110,8 +132,15 @@ public class TransactionService {
     }
     
     public List<Transaction> getLast10Transaction(Account account, LocalDate compareDate) {
-        List<Transaction> transHistory = this.refreshAccount(account).getTransactionHistory();
-        return transHistory.stream().filter(e ->  e.getTransactionDate().toLocalDate().equals(compareDate)).sorted((t1, t2) -> Long.compare(t2.getId(), t1.getId())).limit(10).collect(Collectors.toList());
+        return accountRepository.findLast10TransactionHistory(account, compareDate);
+    }
+    
+    public TransactionFundTransfer setNewFundTransaction(HttpSession httpSession){
+        TransactionFundTransfer newTransaction = new TransactionFundTransfer();
+        newTransaction.setDestAccount((String) httpSession.getAttribute("fund_transfer_destAccNumber"));
+        newTransaction.setAmount(Integer.valueOf((String) httpSession.getAttribute("fund_transfer_amount")));
+        newTransaction.setRefNumber((String)httpSession.getAttribute("fund_transfer_refNumber"));
+        return newTransaction;
     }
     
 }

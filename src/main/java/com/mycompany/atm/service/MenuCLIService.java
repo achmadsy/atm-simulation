@@ -193,7 +193,6 @@ public class MenuCLIService {
         
         try {
             Integer userAmount = Integer.valueOf(option); 
-            validationService.amountValidation(userAmount);
             transactionService.withdraw(userAccount,userAmount);
             showWithdrawSummaryScreen();
         } catch (NumberFormatException e) {

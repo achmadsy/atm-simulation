@@ -5,10 +5,6 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
     $(document).ready(function() {
-        $("#btnContinue").click(function () {
-            var amount = $("#amount").val();
-            window.location.replace('/withdraw/'+amount); 
-        });
         $("#btnBack").click(function () {
             window.location.replace('/withdraw'); 
         });
@@ -21,6 +17,7 @@
         <title>Withdraw - Other</title>
     </head>
     <body>
+        <form action = "/withdraw" method = "POST">
         <table>
             <tr>
                 <td>
@@ -32,14 +29,13 @@
                     Enter amount (multiples of 10) to withdraw: 
                 </td>
                 <td>
-                    <input oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);" type = "number" maxlength="7" id="amount">
+                    <input oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);" type = "number" maxlength="7" id="amount" name="amount">
                 </td>
             </tr>
         </table>
         </br>
-        <button id="btnContinue" type="button" class="btn btn-default btn-lg active">
-            Continue
-        </button>
+        <input type="submit" value="Continue" class="btn btn-default btn-lg active"/>
+        </form>
         </br>
         <button id="btnBack" type="button" class="btn btn-default btn-lg active">
             Back

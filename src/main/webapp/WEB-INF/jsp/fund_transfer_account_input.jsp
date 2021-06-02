@@ -5,10 +5,6 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
     $(document).ready(function() {
-        $("#btnContinue").click(function () {
-            var accNumber = $("#accountNumber").val();
-            window.location.replace('/fund_transfer_save_data?destAccNumber='+accNumber); 
-        });
         $("#btnBack").click(function () {
             window.location.replace('/main'); 
         });
@@ -21,6 +17,7 @@
         <title>Fund Transfer</title>
     </head>
     <body>
+        <form action = "/fund_transfer_save_data" method = "POST">
         <table>
             <tr>
                 <td>
@@ -32,19 +29,18 @@
                     Please enter destination account: 
                 </td>
                 <td>
-                    <input id="accountNumber" type="text" />
+                    <input name="accountNumber" type="text" />
                 </td>
             </tr>
         </table>
         </br>
-        <button id="btnContinue" type="button" class="btn btn-default btn-lg active">
-            Continue
-        </button> 
+        <input type="submit" value="Continue" class="btn btn-default btn-lg active"/>
         </br>
         <button id="btnBack" type="button" class="btn btn-default btn-lg active">
             Back
         </button>     
         </br>
+        </form>
         <c:if test="${not empty error}">
             <span class="error">${error}</span>
             </br>
