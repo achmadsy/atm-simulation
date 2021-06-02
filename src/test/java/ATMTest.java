@@ -15,12 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
-import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -45,7 +43,6 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 @TestPropertySource(
   locations = "classpath:application-test.properties")
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @Transactional
 public class ATMTest {
     
@@ -64,7 +61,7 @@ public class ATMTest {
     public void setUp() {
         newAccount = new Account();
         newAccount.setAccountName("test");
-        newAccount.setBalance(new BigDecimal(10));
+        newAccount.setBalance(new BigDecimal(660));
         newAccount.setPin("123456");
         newAccount.setAccountNumber("112233");
         newAccount.setTransactionHistory(new ArrayList<>());
@@ -79,34 +76,33 @@ public class ATMTest {
     }
     
     @Test
-    public void test1_isAccountAvailable() {
+    public void testIsAccountAvailable() {
         Account retrievedAccount = accountRepository.findAccount(newAccount.getAccountNumber());
         assertEquals(retrievedAccount.getAccountNumber(), newAccount.getAccountNumber());
     }
     
     @Test
-    public void test2_isAccountAvailableFromListAccount() { 
+    public void testIsAccountAvailableFromListAccount() { 
         List<Account> retrievedAccounts = accountRepository.findAllAccount();
         assertEquals(2 , retrievedAccounts.size());
         assertEquals(retrievedAccounts.get(0).getAccountNumber(), newAccount.getAccountNumber());
     }
     
     @Test
-    public void test3_withdraw() {
+    public void tesWithdraw() {
         int beforeAmount = newAccount.getBalance().intValue();
         transactionService.withdraw(newAccount, 10);
         assertEquals(beforeAmount-10, newAccount.getBalance().intValue());
     }
     
     @Test
-    public void test4_withdrawErrorBalance() {
+    public void testWithdrawErrorBalance() {
         exceptionRule.expect(InsufficientBalanceException.class);
-        transactionService.withdraw(newAccount, 10);
+        transactionService.withdraw(newAccount, 690);
     }
     
     @Test
-    public void test5_fundTransfer() {
-        newAccount.setBalance(new BigDecimal(10));
+    public void testFundTransfer() {
         int beforeAmountAcc1 = newAccount.getBalance().intValue();
         int beforeAmountAcc2 = newAccount2.getBalance().intValue();
         TransactionFundTransfer fundTransfer = new TransactionFundTransfer(LocalDateTime.now(), 10, "112234", transactionService.getRandomRefNum());
@@ -117,21 +113,20 @@ public class ATMTest {
     }
     
     @Test
-    public void test6_fundTransferErrorBalance() {
+    public void testFundTransferErrorBalance() {
         exceptionRule.expect(InsufficientBalanceException.class);
-        TransactionFundTransfer fundTransfer = new TransactionFundTransfer(LocalDateTime.now(), 10, "112234", transactionService.getRandomRefNum());
+        TransactionFundTransfer fundTransfer = new TransactionFundTransfer(LocalDateTime.now(), 690, "112234", transactionService.getRandomRefNum());
         transactionService.fundTransfer(newAccount, fundTransfer);
     }
    
     @Test
-    public void test7_fundTransferErrorNotFound() {
+    public void testFundTransferErrorNotFound() {
         exceptionRule.expect(InvalidAccountException.class);
         transactionService.checkAccountAvailability("112255");
     }
     
     @Test
-    public void test8_transactionHistory1stTransaction() {
-        newAccount.setBalance(new BigDecimal(2000));
+    public void testTransactionHistoryWithSingleTransaction() {
         transactionService.withdraw(newAccount, 10);
         List<Transaction> listHistory = transactionService.getLast10Transaction(newAccount, LocalDate.now());
         assertEquals(listHistory.get(0).getAmount(), new Integer(-10));
@@ -139,7 +134,8 @@ public class ATMTest {
     }
     
     @Test
-    public void test9_transactionHistory2ndTransaction() {
+    public void testTransactionHistoryWithTwoTransaction() {
+        transactionService.withdraw(newAccount, 10);
         transactionService.withdraw(newAccount, 20);
         List<Transaction> listHistory = transactionService.getLast10Transaction(newAccount, LocalDate.now());      
         assertEquals(listHistory.get(0).getAmount(), new Integer(-20));
@@ -149,7 +145,9 @@ public class ATMTest {
     }
     
     @Test
-    public void test9_transactionHistoryMoreThan10Transaction() {
+    public void testTransactionHistoryMoreThan10Transaction() {  
+        transactionService.withdraw(newAccount, 10);
+        transactionService.withdraw(newAccount, 20);
         transactionService.withdraw(newAccount, 30);
         transactionService.withdraw(newAccount, 40);
         transactionService.withdraw(newAccount, 50);
